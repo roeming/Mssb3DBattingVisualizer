@@ -165,8 +165,11 @@ class RenderedBattingScene:
 
             for i in range(count):
                 kwargs = copy.deepcopy(self.batting_json)
-
-                kwargs.setdefault("override_vertical_range", i) 
+                if self.batting_json.get("show_one_hit", False) != True:
+                    kwargs.setdefault("override_vertical_range", i) 
+                kwargs.setdefault("rand_1", 1565)
+                kwargs.setdefault("rand_2", 20008)
+                kwargs.setdefault("rand_3", 1628)
 
                 res = calc_batting.hit_ball(**kwargs)["FlightDetails"]["Path"]
                 if len(res) > 0:
@@ -179,14 +182,11 @@ class RenderedBattingScene:
                     self.screen.draw_text(new_points[-1], Vector3(1, 0, 0), str(new_points[-1]), text_size=24, rendered_height=0.5)
 
                     self.screen.draw_sphere(new_points[self.frame_counter % len(new_points)], radius=0.1, resolution=5)
-            
 
-            max_rand_generations = 2000
-
-            if self.batting_json["generate_random_hits"] == True and self.saved_final_spots == None:
+            if isinstance(self.batting_json["generate_random_hits"], int) and self.batting_json["generate_random_hits"] > 0 and self.saved_final_spots == None:
                 self.saved_final_spots = self.screen.start_new_list()
 
-                for i in range(max_rand_generations):
+                for i in range(self.batting_json["generate_random_hits"]):
                     kwargs = copy.deepcopy(self.batting_json)
                     kwargs.setdefault("rand_1", randint(0, (2**15)-1))
                     kwargs.setdefault("rand_2", randint(0, (2**15)-1))

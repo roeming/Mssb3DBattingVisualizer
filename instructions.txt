@@ -47,4 +47,5 @@ override_vertical_angle: int, (0 is straight ahead, 1024 is straight up)
 override_horizontal_angle: int, (0 is all the way right, 1024 is center field, 2048 is all the way left)
 override_power: int, (0-150)
 
-generate_random_hits: bool, (generates 2000 random hits to get an idea of the spread of a type of shot)
+show_one_hit, bool, (don't show every vertical range)
+generate_random_hits: int, (generates X many random hits to get an idea of the spread of a type of shot)
