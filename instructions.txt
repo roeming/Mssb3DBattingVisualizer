@@ -1,0 +1,50 @@
+CONTROLS:
+While clicked into the render window, you can use WASD to move around.
+Right-Click and drag to rotate the camera.
+Q and E to go up and down.
+Left Shift to speed up.
+
+TEXT INSTRUCTIONS:
+Create Valid JSON with any of the following parameters:
+
+batter_id: int, default 0, max 53
+is_batter_captain: bool, default False
+pitcher_id: int, default 0, max 53
+
+easy_batting: bool, default false
+handedness: int, (0) Righty, (1) Lefty, default 0
+
+batter_x: float, default 0.0
+ball_x: float, default 0.0
+ball_z: float, default 0.0
+
+chem: int, default 0, max 3
+
+num_stars: int, default 4, (Used to calculate if moonshot)
+
+hit_type: int, (0) Slap, (1) Charge, default 0
+is_star_hit: bool, default false
+is_starred: bool, default false
+
+pitch_type: int, (0)Curve (1)Charge (2)PerfectCharge (3)ChangeUp, default 0
+
+charge_up, float, default 0.0, max 1.0
+charge_down (overcharge), float, default 0.0, max 1.0
+
+frame: int, default 2, max 14
+
+stick_up: bool, default false
+stick_down: bool, default false
+stick_left: bool, default false
+stick_right: bool, default false
+
+rand_1: int, default 0, max 32767
+rand_2: int, default 0, max 32767
+rand_3: int, default 0, max 32767
+
+override_vertical_range: int, (choose a specific vertical range, 0-4)
+override_vertical_angle: int, (0 is straight ahead, 1024 is straight up)
+override_horizontal_angle: int, (0 is all the way right, 1024 is center field, 2048 is all the way left)
+override_power: int, (0-150)
+
+generate_random_hits: bool, (generates 2000 random hits to get an idea of the spread of a type of shot)
