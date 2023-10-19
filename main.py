@@ -35,6 +35,7 @@ class RenderedBattingScene:
         self.batting_json = {}
 
         self.saved_final_spots = None
+        self.dt = 0.0
     
     def set_batting_json(self, d:dict):
         if d != self.batting_json:
@@ -65,6 +66,7 @@ class RenderedBattingScene:
 
         new_time = self.get_time()
         dt = new_time - self.old_time
+        self.dt = dt
         self.old_time = new_time
         self.frame_counter = int((new_time - self.start_time) * 60)
         self.screen.update_events()
@@ -108,7 +110,16 @@ class RenderedBattingScene:
 
         self.draw_batter()
 
+        self.draw_fps()
+
         self.screen.present()
+
+    def draw_fps(self):
+        try:
+            if self.batting_json.get("show_fps", False) == True:
+                self.screen.draw_text(text=f"Fps: {int(1/(self.dt))}", p=Vector3(-1,-1,0), direction_vector=Vector3(1,0,0), rendered_height=0.05, text_size=24, on_ui=True)
+        except:
+            pass
 
     def draw_batter(self):
         try:
@@ -137,7 +148,7 @@ class RenderedBattingScene:
             for p in [batter_hitbox_near, batter_hitbox_far]:
                 self.screen.draw_cube(position=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z), scale=Vector3(p, height, batter_width), offset=Vector3(p/2, height/2, batter_width/2), filled=False, color=(0, 255, 255))
             
-            self.screen.draw_text(Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), Vector3(1, 0, 0), text=calc_batting.get_name(batter_id), text_size=24, rendered_height=0.25)
+            self.screen.draw_text(text=calc_batting.get_name(batter_id), p=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0),text_size=24, rendered_height=0.25)
 
         except:
             pass
@@ -179,22 +190,41 @@ class RenderedBattingScene:
                         in res
                     ]
                     self.screen.draw_lines(new_points, line_width=5)
-                    self.screen.draw_text(new_points[-1], Vector3(1, 0, 0), str(new_points[-1]), text_size=24, rendered_height=0.5)
+                    final_point = new_points[-1]
+                    final_point_display = final_point.copy()
+                    render_height = 0.5
+
+                    if kwargs.get("units_feet", False) == True:
+                        final_point_display *= 3.28084
+                    
+                    self.screen.draw_text(text=f"({final_point_display.x:.2f}, {final_point_display.z:.2f})", p=final_point, direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=render_height)
+
+                    hit_distance = final_point_display.length()
+                    text = f"{hit_distance:.2f} m"
+                    if kwargs.get("units_feet", False) == True:
+                        text = f"{hit_distance:.2f} ft"
+                        
+                    self.screen.draw_text(text=text, p=final_point + Vector3(0, render_height, 0), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=render_height)
 
                     self.screen.draw_sphere(new_points[self.frame_counter % len(new_points)], radius=0.1, resolution=5)
 
             if isinstance(self.batting_json["generate_random_hits"], int) and self.batting_json["generate_random_hits"] > 0 and self.saved_final_spots == None:
                 self.saved_final_spots = self.screen.start_new_list()
-
+                s = set()
                 for i in range(self.batting_json["generate_random_hits"]):
                     kwargs = copy.deepcopy(self.batting_json)
                     kwargs.setdefault("rand_1", randint(0, (2**15)-1))
                     kwargs.setdefault("rand_2", randint(0, (2**15)-1))
                     kwargs.setdefault("rand_3", randint(0, (2**15)-1))
 
-                    final_spot = calc_batting.hit_ball(**kwargs)["FlightDetails"]["Path"][-1]
-                    final_spot = dict_to_vec3(final_spot)
-                    self.screen.draw_sphere(final_spot, radius=0.1, resolution=2)
+                    all_hit_points = calc_batting.hit_ball(**kwargs)["FlightDetails"]["Path"]
+                    all_hit_points = [dict_to_vec3(x) for x in all_hit_points]
+                    final_point = all_hit_points[-1]
+                    if (*final_point,) not in s:
+                        s.add((*final_point,))
+                        # self.screen.draw_lines(all_hit_points, line_width=1, color=(255, 255, 255))
+
+                        self.screen.draw_sphere(final_point, radius=0.1, resolution=2)
 
                 self.screen.end_list(self.saved_final_spots)
 

@@ -49,3 +49,6 @@ override_power: int, (0-150)
 
 show_one_hit, bool, (don't show every vertical range)
 generate_random_hits: int, (generates X many random hits to get an idea of the spread of a type of shot)
+
+show_fps : bool (display frame rate)
+units_feet : bool (display units in feet instead of meters)

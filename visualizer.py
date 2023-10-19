@@ -398,7 +398,7 @@ class canvas:
         self.draw_lines(points, color, line_width)
         # pygame.draw.lines(self.screen, color, points=points, width=line_width, closed=False)
     
-    def draw_text(self, p:Vector3, direction_vector:Vector3, text:str, color = (0,0,0), text_size = 10, rendered_height = 2):
+    def draw_text(self, text:str, p:Vector3, direction_vector:Vector3, color = (0,0,0), text_size = 10, rendered_height = 2, on_ui = False):
         global cached_fonts, cached_strings
         if text_size not in cached_fonts:
             font = pygame.font.SysFont("Arial", text_size)
@@ -410,6 +410,20 @@ class canvas:
         if len(cached_strings) > 100:
             glDeleteTextures([generated_texture for (_, __), generated_texture in cached_strings.values()])
             cached_strings = {}
+
+        if on_ui:
+            glMatrixMode(GL_MODELVIEW)
+            glPushMatrix()
+            glLoadIdentity()
+            # glMultMatrixf(self.view_matrix.transpose().all_values())
+            # glScalef(-1.0,-1.0,1.0)
+            
+            glMatrixMode(GL_PROJECTION)
+            glPushMatrix()
+            glLoadIdentity()
+            # glMultMatrixf(self.projection_matrix.transpose().all_values())
+
+            glMatrixMode(GL_MODELVIEW)
 
         if text not in cached_strings:
             rendered_string = font.render(text, False, color)
@@ -464,6 +478,13 @@ class canvas:
         
         glPopMatrix()
 
+        if on_ui:
+            glMatrixMode(GL_PROJECTION)
+            glPopMatrix()
+
+            glMatrixMode(GL_MODELVIEW)
+            glPopMatrix()
+            
     def draw_cylinder(self, p:Vector3, color = (255, 0, 0), resolution = 20, radius = 0.5, height = 1.0, line_width = 2, fill = False):
 
         diameter = radius * 2
