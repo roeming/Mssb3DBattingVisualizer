@@ -5,8 +5,11 @@ from stadium_variables import *
 import calc_batting
 import PySimpleGUI as sg
 from random import randint
+from os.path import exists
 
 render_dimensions = (1280, 720)
+
+DEFAULT_STADIUM = "Stadiums/Mario Stadium.json"
 
 KEYBOARD_CAMERA_CONTROLS = {
     pygame.K_w      : lambda movement, delta_time, sensitivity : movement + (Vector3(0, 0, 1) * delta_time * sensitivity),
@@ -36,6 +39,9 @@ class RenderedBattingScene:
 
         self.saved_final_spots = None
         self.dt = 0.0
+        self.stadium_path = None
+        with open(DEFAULT_STADIUM, "r") as f:
+            self.set_stadium(read_stadium(json.load(f)))
     
     def set_batting_json(self, d:dict):
         if d != self.batting_json:
@@ -96,6 +102,8 @@ class RenderedBattingScene:
         if self.screen.is_right_button_down():
             new_move = self.screen.mouse_move
             self.view_rot = Vector3(self.view_rot.x + new_move.y, self.view_rot.y - new_move.x, self.view_rot.z)
+
+        self.check_update_stadium()
     
     def render(self):
         self.screen.clear((0, 0, 0))
@@ -237,6 +245,18 @@ class RenderedBattingScene:
                 self.saved_final_spots = None
             pass
 
+    def check_update_stadium(self):
+        if self.batting_json != None:
+            new_path = self.batting_json.get("stadium_path", None)
+
+            if new_path != None and new_path != self.stadium_path and exists(new_path):
+                try:
+                    self.stadium_path = new_path
+                    with open(new_path, "r") as f:
+                        self.set_stadium(read_stadium(json.load(f)))
+                except:
+                    pass
+
     def set_stadium(self, stadium:MssbStadium):
         self.stadium = stadium
         self.record_stadium()
@@ -336,9 +356,6 @@ def main():
 
     with open("instructions.txt", "r") as f:
         param_window.instructions_text = f.read()
-
-    with open("Stadiums/Mario Stadium.json", "r") as f:
-        renderer.set_stadium(read_stadium(json.load(f)))
 
     while True:
         json_update = param_window.update_values()
