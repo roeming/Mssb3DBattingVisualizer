@@ -48,6 +48,23 @@ def convert_list_to_vector(v):
         return Vector4(*v)
 
 
+# # these two functions were moved from stadium_variables.py since they were generic functions
+def vec3_to_dict(v:Vector3):
+    return {
+        "X":v.x,
+        "Y":v.y,
+        "Z":v.z
+    }
+
+
+def dict_to_vec3(d:dict):
+    return Vector3(d["X"], d["Y"], d["Z"])
+
+
+def vec3_to_vec4(v: Vector3):
+    return Vector4(v.x, v.y, v.z, 1.0)
+
+
 class mat:
     def __init__(self, values: list) -> None:
         self.v = values
@@ -130,10 +147,6 @@ def translation_mat(v: Vector3) -> mat:
     ])
 
 
-def vec3_to_vec4(v: Vector3):
-    return Vector4(v.x, v.y, v.z, 1.0)
-
-
 def scale_mat(v: Vector3) -> mat:
     return mat([
         [v.x, 0.0, 0.0, 0.0],
@@ -174,3 +187,4 @@ def rotation_mat(v: Vector3) -> mat:
     ])
 
     return rotate_x * rotate_y * rotate_z
+

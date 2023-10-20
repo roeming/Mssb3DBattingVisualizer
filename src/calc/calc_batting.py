@@ -1,8 +1,7 @@
-import json
 import math
 from random import random
 
-from data import *
+from data.constants import *
 
 
 class BattingCalculator:

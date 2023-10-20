@@ -1,19 +1,19 @@
 import time, json, copy
 
-from visualizer import *
-from stadium_variables import *
-import calc_batting
+from utils.stadium_variables import *
+from src.calc import calc_batting
 import PySimpleGUI as sg
 from random import randint
-
-from data import *
+from utils.viscolor import contrast_color
+from data.constants import *
 
 from os.path import exists
 
+from utils.vec_mtx import dict_to_vec3
 
 render_dimensions = (1280, 720)
 
-DEFAULT_STADIUM = "Stadiums/Mario Stadium.json"
+DEFAULT_STADIUM = "data/stadiums/Mario Stadium.json"
 
 KEYBOARD_CAMERA_CONTROLS = {
     pygame.K_w      : lambda movement, delta_time, sensitivity : movement + (Vector3(0, 0, 1) * delta_time * sensitivity),
@@ -28,7 +28,7 @@ KEYBOARD_CAMERA_CONTROLS = {
 class RenderedBattingScene:
     def __init__(self) -> None:
         self.screen = canvas(render_dimensions)
-        self.stadium:MssbStadium = None
+        self.stadium: MssbStadium = None
         self.stadium_graphics_list = None
         self.camera_sensitivity = 10.0
 
@@ -190,7 +190,7 @@ class RenderedBattingScene:
             for p in [batter_hitbox_near, batter_hitbox_far]:
                 self.screen.draw_cube(position=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z), scale=Vector3(p, height, batter_width), offset=Vector3(p/2, height/2, batter_width/2), filled=False, color=(0, 255, 255))
             
-            self.screen.draw_text(text=calc_batting.get_name(batter_id), p=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0),text_size=24, rendered_height=0.25)
+            self.screen.draw_text(text=calc_batting.get_name(batter_id), p=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=0.25)
 
         except:
             pass
@@ -319,11 +319,11 @@ class RenderedBattingScene:
                     in tris.points
                 ]
                 
-                if tris.collection_type == STADIUM_TRIANGLE_COLLECTION_SINGLES:
+                if tris.collection_type == StadiumTriangleCollectionType.SINGLES:
                     r = range(0, len(points), 3)
                     triangle_method = self.screen.draw_triangles
 
-                elif tris.collection_type == STADIUM_TRIANGLE_COLLECTION_STRIP:
+                elif tris.collection_type == StadiumTriangleCollectionType.STRIP:
                     r = range(0, len(points)-2)
                     triangle_method = self.screen.draw_triangle_strip
 

@@ -1,13 +1,9 @@
 from __future__ import annotations
-from pygame import Vector3, Vector2
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import pygame
-import math
 import sys
-from numpy.linalg import inv as matrix_inverse
-import numpy
-from vec_mtx import *
+from utils.vec_mtx import *
 
 cached_fonts = {}
 cached_strings = {}
