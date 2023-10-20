@@ -4,6 +4,7 @@ import numpy
 import math
 from numpy.linalg import inv as matrix_inverse
 
+
 class Vector4:
     def __init__(self, x=0, y=0, z=0, w=1) -> None:
         self.x = x
@@ -95,7 +96,7 @@ class mat:
                     output[r] += self.v[r][c] * other[c]
             return convert_list_to_vector(output)
 
-        assert (False)
+        assert False
 
     def inv(self):
         a = matrix_inverse(self.v)

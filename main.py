@@ -170,6 +170,7 @@ class RenderedBattingScene:
         except:
             pass
 
+
     def draw_ball_path(self):
         try:
             count = 1 if "override_vertical_range" in self.batting_json else 5
