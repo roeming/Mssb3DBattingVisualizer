@@ -5,7 +5,11 @@ from stadium_variables import *
 import calc_batting
 import PySimpleGUI as sg
 from random import randint
+
+from data import *
+
 from os.path import exists
+
 
 render_dimensions = (1280, 720)
 
@@ -120,8 +124,38 @@ class RenderedBattingScene:
 
         self.draw_fps()
 
+        self.draw_fielders()
+
         self.screen.present()
 
+    def draw_fielders(self):
+        try:
+            fielder_pos = self.batting_json.get("choose_fielder", 7)
+            fielder_coordinates = Vector3(FIELDER_STARTING_COORDINATES[fielder_pos][0],0.5,FIELDER_STARTING_COORDINATES[fielder_pos][1])
+
+            self.screen.draw_cube(position=fielder_coordinates,scale=Vector3(1,1,1),filled=True, color=(0, 255, 255))
+
+            sliding_catch_ability = 0
+            sliding_catch_mult = 1
+            dive_frame_upper = 45
+            dive_frame_lower = 6
+
+            jogging_speed = 0.12
+            sprint_mult = 1.2
+            dive_range = 1.652
+
+            ball_hangtime = 100
+
+            running_frames = max(0, ball_hangtime - dive_frame_upper)
+            running_distance = running_frames * jogging_speed * sprint_mult
+            dive_min_distance = jogging_speed * (dive_frame_upper - 1) * sprint_mult
+            dive_max_distance = dive_min_distance * sliding_catch_mult + dive_range
+
+            self.screen.draw_cylinder(fielder_coordinates,radius=dive_min_distance,height=0.01,color=(0,255,0),line_width=5)
+            self.screen.draw_cylinder(fielder_coordinates,radius=dive_max_distance,height=0.01,line_width=3)
+        except:
+            pass
+    
     def draw_fps(self):
         try:
             if self.batting_json.get("show_fps", False) == True:
@@ -177,6 +211,7 @@ class RenderedBattingScene:
 
         except:
             pass
+
 
     def draw_ball_path(self):
         try:
