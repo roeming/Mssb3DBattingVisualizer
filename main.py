@@ -1,10 +1,11 @@
 import time, json, copy
 
-from utils.stadium_variables import *
+import utils.get_data
 from src.calc import calc_batting
 import PySimpleGUI as sg
 from random import randint
 from utils.viscolor import contrast_color
+from utils.stadium_variables import *
 from data.constants import *
 
 from os.path import exists
@@ -169,7 +170,7 @@ class RenderedBattingScene:
             handedness = self.batting_json.get("handedness", 0)
             batter_id = self.batting_json.get("batter_id", 0)
 
-            hbox_batter = calc_batting.get_hitbox(batter_id)
+            hbox_batter = utils.get_data.get_hitbox(batter_id)
                 
             batter_width = hbox_batter[0] / 100
             batter_hitbox_near =  hbox_batter[1] / 100
@@ -190,7 +191,7 @@ class RenderedBattingScene:
             for p in [batter_hitbox_near, batter_hitbox_far]:
                 self.screen.draw_cube(position=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z), scale=Vector3(p, height, batter_width), offset=Vector3(p/2, height/2, batter_width/2), filled=False, color=(0, 255, 255))
             
-            self.screen.draw_text(text=calc_batting.get_name(batter_id), p=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=0.25)
+            self.screen.draw_text(text=utils.get_data.get_name(batter_id), p=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=0.25)
 
         except:
             pass
@@ -204,7 +205,7 @@ class RenderedBattingScene:
             if handedness == 1:
                 batter_x *= -1
 
-            near_far = calc_batting.get_bat_hitbox(batter_id, 0, handedness)
+            near_far = utils.get_data.get_bat_hitbox(batter_id, 0, handedness)
             
             for p in near_far:
                 self.screen.draw_cube(position=Vector3(batter_x, 1, 0), scale=Vector3(p, 0.1, 0.1), offset=Vector3((p/2), 0, 0))
