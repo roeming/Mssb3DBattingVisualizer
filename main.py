@@ -131,28 +131,30 @@ class RenderedBattingScene:
     def draw_fielders(self):
         try:
             fielder_pos = self.batting_json.get("choose_fielder", 7)
+            fielder_id = self.batting_json.get("fielder_id", 0)            
+
             fielder_coordinates = Vector3(FIELDER_STARTING_COORDINATES[fielder_pos][0],0.5,FIELDER_STARTING_COORDINATES[fielder_pos][1])
 
             self.screen.draw_cube(position=fielder_coordinates,scale=Vector3(1,1,1),filled=True, color=(0, 255, 255))
 
             sliding_catch_ability = 0
-            sliding_catch_mult = 1
-            dive_frame_upper = 45
+            sliding_catch_mult =  1 if FIELDER_SLIDINGCATCH_ABILITY[fielder_id] == 0 else 1.2
+            dive_frame_upper = 45 if FIELDER_SLIDINGCATCH_ABILITY[fielder_id] == 0 else 60
             dive_frame_lower = 6
 
-            jogging_speed = 0.12
-            sprint_mult = 1.2
-            dive_range = 1.652
+            jogging_speed = FIELDER_JOGGING_SPEED[fielder_id]
+            sprint_mult = 1.4
+            dive_range = FIELDER_DIVE_RANGE[fielder_id]
 
-            ball_hangtime = 100
+            ball_hangtime = self.batting_json.get("hangtime", 100)
 
-            running_frames = max(0, ball_hangtime - dive_frame_upper)
-            running_distance = running_frames * jogging_speed * sprint_mult
-            dive_min_distance = jogging_speed * (dive_frame_upper - 1) * sprint_mult
-            dive_max_distance = dive_min_distance * sliding_catch_mult + dive_range
-
-            self.screen.draw_cylinder(fielder_coordinates,radius=dive_min_distance,height=0.01,color=(0,255,0),line_width=5)
-            self.screen.draw_cylinder(fielder_coordinates,radius=dive_max_distance,height=0.01,line_width=3)
+            running_distance = ball_hangtime * jogging_speed * sprint_mult
+            #dive_min_distance = jogging_speed * (dive_frame_upper - 1) * sprint_mult
+            #dive_max_distance = dive_min_distance * sliding_catch_mult + dive_range
+            dive_max_distance = max(ball_hangtime-dive_frame_upper,0) * jogging_speed * sprint_mult + dive_range + min(ball_hangtime, dive_frame_upper) * jogging_speed * sprint_mult * sliding_catch_mult
+        
+            self.screen.draw_cylinder(fielder_coordinates, radius=running_distance/2, height=0.01, line_width=5, color=(0,0,255))
+            self.screen.draw_cylinder(fielder_coordinates, radius=dive_max_distance/2, height=0.01, line_width=10)
         except:
             pass
     
