@@ -337,7 +337,7 @@ def main():
     with open("instructions.txt", "r") as f:
         param_window.instructions_text = f.read()
 
-    with open("Mario stadium.json", "r") as f:
+    with open("Stadiums/Mario Stadium.json", "r") as f:
         renderer.set_stadium(read_stadium(json.load(f)))
 
     while True:

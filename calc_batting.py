@@ -1276,27 +1276,27 @@ def get_bat_hitbox(char_id, pos_x, handedness):
 def get_name(char_id)->str:
     return STATS[char_id]["Name"]
 
-if __name__ == "__main__":
-    e = hit_ball(
-        batter_id = 2,
-        pitcher_id = 26,
-        easy_batting = False,
-        handedness = 0,
-        batter_x = 0.0,
-        ball_x = 0.2101,
-        ball_z = 0.0,
-        chem = 2,
-        hit_type = 0,
-        is_star_hit = False,
-        pitch_type = 3,
-        charge_up = 0.0,
-        charge_down = 0.0,
-        frame = 4,
-        rand_1 = 30677,
-        rand_2 = 2380,
-        rand_3 = 29261,
-        stick_down = True,
-        num_stars = 4,
-        is_starred = False,
-    )
-    print(json.dumps(e, sort_keys=True, indent=4))
+# if __name__ == "__main__":
+#     e = hit_ball(
+#         batter_id = 2,
+#         pitcher_id = 26,
+#         easy_batting = False,
+#         handedness = 0,
+#         batter_x = 0.0,
+#         ball_x = 0.2101,
+#         ball_z = 0.0,
+#         chem = 2,
+#         hit_type = 0,
+#         is_star_hit = False,
+#         pitch_type = 3,
+#         charge_up = 0.0,
+#         charge_down = 0.0,
+#         frame = 4,
+#         rand_1 = 30677,
+#         rand_2 = 2380,
+#         rand_3 = 29261,
+#         stick_down = True,
+#         num_stars = 4,
+#         is_starred = False,
+#     )
+#     print(json.dumps(e, sort_keys=True, indent=4))
