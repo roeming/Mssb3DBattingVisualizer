@@ -52,3 +52,5 @@ generate_random_hits: int, (generates X many random hits to get an idea of the s
 
 show_fps : bool (display frame rate)
 units_feet : bool (display units in feet instead of meters)
+
+stadium_path : string (path from exe to new stadium, will be remembered if there's no path or illegal path)
