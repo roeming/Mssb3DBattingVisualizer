@@ -131,13 +131,13 @@ class RenderedBattingScene:
     def draw_fielders(self):
         try:
             fielder_pos = self.batting_json.get("choose_fielder", 7)
-            fielder_id = self.batting_json.get("fielder_id", 0)            
+            fielder_id = self.batting_json.get("fielder_id", 0)     
+            dive_type = self.batting_json.get("dive_type", "outfield")
 
             fielder_coordinates = Vector3(FIELDER_STARTING_COORDINATES[fielder_pos][0],0.5,FIELDER_STARTING_COORDINATES[fielder_pos][1])
 
             self.screen.draw_cube(position=fielder_coordinates,scale=Vector3(1,1,1),filled=True, color=(0, 255, 255))
 
-            sliding_catch_ability = 0
             sliding_catch_mult =  1 if FIELDER_SLIDINGCATCH_ABILITY[fielder_id] == 0 else 1.2
             dive_frame_upper = 45 if FIELDER_SLIDINGCATCH_ABILITY[fielder_id] == 0 else 60
             dive_frame_lower = 6
@@ -148,10 +148,12 @@ class RenderedBattingScene:
 
             ball_hangtime = self.batting_json.get("hangtime", 100)
 
-            running_distance = ball_hangtime * jogging_speed * sprint_mult
+            fielder_control_frames = max(ball_hangtime - FIELDER_LOCKOUT_BYPOSITION[fielder_pos], 0)
+
+            running_distance = fielder_control_frames * jogging_speed * sprint_mult
             #dive_min_distance = jogging_speed * (dive_frame_upper - 1) * sprint_mult
             #dive_max_distance = dive_min_distance * sliding_catch_mult + dive_range
-            dive_max_distance = max(ball_hangtime-dive_frame_upper,0) * jogging_speed * sprint_mult + dive_range + min(ball_hangtime, dive_frame_upper) * jogging_speed * sprint_mult * sliding_catch_mult
+            dive_max_distance = max(fielder_control_frames-dive_frame_upper,0) * jogging_speed * sprint_mult + dive_range + min(fielder_control_frames, dive_frame_upper) * jogging_speed * sprint_mult * sliding_catch_mult
         
             self.screen.draw_cylinder(fielder_coordinates, radius=running_distance/2, height=0.01, line_width=5, color=(0,0,255))
             self.screen.draw_cylinder(fielder_coordinates, radius=dive_max_distance/2, height=0.01, line_width=10)
