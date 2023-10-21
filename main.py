@@ -307,9 +307,42 @@ class RenderedBattingScene:
 
 class ParameterWindow:
     def __init__(self) -> None:
-        layout = [
+        originalGUI_column = [
             [sg.Multiline("{}", key="-BATTING-JSON-", enable_events=True, expand_y=True, auto_size_text=True)],
-            [sg.Button("Instructions", key="-INSTRUCTIONS-", enable_events=True), sg.Button("Show Resulting Hit Details", key="-SHOW-HIT-DETAILS-", enable_events=True)],
+            [sg.Button("Instructions", key="-INSTRUCTIONS-", enable_events=True), sg.Button("Show Resulting Hit Details", key="-SHOW-HIT-DETAILS-", enable_events=True)]
+        ]
+        
+    
+        visualizer_param_column = [
+            [sg.Text("Batter ID"), sg.Combo(values=('Mario', 'Luigi'), default_value="Mario"),  sg.Checkbox('Superstar', default=False), sg.Checkbox('Lefty', default=False)],
+            [sg.Text("Pitcher ID"), sg.Combo(values=('Mario', 'Luigi'), default_value="Mario"),  sg.Checkbox('Superstar', default=False), sg.Checkbox('Lefty', default=False)],
+            [sg.Text("Batter x"),sg.InputText(0)], 
+            [sg.Text("Ball x"),sg.InputText(0)], 
+            [sg.Text("Ball z"),sg.InputText(0)],
+            [sg.Text("Chemistry Links on Base"), sg.Combo(values=(0, 1, 2, 3), default_value=0)],
+            [sg.Text("Swing Type"), sg.Combo(values=('Slap', 'Charge'),default_value="Slap")],
+            [sg.Text("Pitch Type"), sg.Combo(values=('Curve', 'Charge', 'Perfect', 'Change Up'), default_value="Curve")],
+            [sg.Text("Charge Up"), sg.Slider(range=(0,1), default_value=0, orientation='horizontal', resolution=0.01, tick_interval=0.25)],
+            [sg.Text("Charge Down"), sg.Slider(range=(0,1), default_value=0, orientation='horizontal', resolution=0.01, tick_interval=0.25)],
+            [sg.Text("Contact Frame"), sg.Slider(range=(2,10), default_value=6, orientation='horizontal', resolution=1, tick_interval=1)],
+            [sg.Text("Stick Input"), sg.Checkbox("↑", default=False), sg.Checkbox("←", default=False), sg.Checkbox("→", default=False), sg.Checkbox("↓", default=False)],
+            [sg.Text("RNG 1"),sg.InputText(1565)], 
+            [sg.Text("RNG 2"),sg.InputText(20008)], 
+            [sg.Text("RNG 3"),sg.InputText(1628)],
+            [sg.Text("Vertical Range Override"),sg.InputText()], 
+            [sg.Text("Vertical Angle Override"),sg.InputText()], 
+            [sg.Text("Horizontal Angle Override"),sg.InputText()],  
+            [sg.Text("Power Override"),sg.InputText()],  
+            [sg.Checkbox("Show One Hit", default=False)],  
+            [sg.Checkbox("Generate Random Hits", default=False)],   
+            [sg.Checkbox("Show FPS", default=False)],  
+            [sg.Checkbox("Convert Units to Feet", default=False)],  
+            [sg.Text("Stadium Path"),sg.InputText()] 
+        ]
+        
+        layout = [
+            [sg.Column(originalGUI_column),
+            sg.Column(visualizer_param_column)]
         ]
 
         self.window = sg.Window("Render Parameters", layout, resizable=True, enable_close_attempted_event=True)
