@@ -132,7 +132,8 @@ class RenderedBattingScene:
         try:
             fielder_pos = self.batting_json.get("choose_fielder", 7)
             fielder_id = self.batting_json.get("fielder_id", 0)     
-            dive_type = self.batting_json.get("dive_type", "outfield")
+            dive_type = self.batting_json.get("dive_type", "popfly")
+            ball_hangtime = self.batting_json.get("hangtime", 100)
 
             fielder_coordinates = Vector3(FIELDER_STARTING_COORDINATES[fielder_pos][0],0.5,FIELDER_STARTING_COORDINATES[fielder_pos][1])
 
@@ -146,8 +147,6 @@ class RenderedBattingScene:
             sprint_mult = 1.4
             dive_range = FIELDER_DIVE_RANGE[fielder_id]
 
-            ball_hangtime = self.batting_json.get("hangtime", 100)
-
             fielder_control_frames = max(ball_hangtime - FIELDER_LOCKOUT_BYPOSITION[fielder_pos], 0)
 
             running_distance = fielder_control_frames * jogging_speed * sprint_mult
@@ -155,8 +154,13 @@ class RenderedBattingScene:
             #dive_max_distance = dive_min_distance * sliding_catch_mult + dive_range
             dive_max_distance = max(fielder_control_frames-dive_frame_upper,0) * jogging_speed * sprint_mult + dive_range + min(fielder_control_frames, dive_frame_upper) * jogging_speed * sprint_mult * sliding_catch_mult
         
-            self.screen.draw_cylinder(fielder_coordinates, radius=running_distance/2, height=0.01, line_width=5, color=(0,0,255))
-            self.screen.draw_cylinder(fielder_coordinates, radius=dive_max_distance/2, height=0.01, line_width=10)
+            if dive_type == "popfly":
+                lineHeight = 0.01
+            elif dive_type == "linedrive":
+                lineHeight = 2.78 if fielder_id == 2 else 2.5
+
+            self.screen.draw_cylinder(fielder_coordinates, radius=running_distance/2, height=lineHeight, line_width=5, color=(0,0,255))
+            self.screen.draw_cylinder(fielder_coordinates, radius=dive_max_distance/2, height=lineHeight, line_width=5)
         except:
             pass
     
