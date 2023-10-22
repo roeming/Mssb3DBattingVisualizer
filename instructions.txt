@@ -54,6 +54,9 @@ show_fps : bool (display frame rate)
 units_feet : bool (display units in feet instead of meters)
 
 choose_fielder : int, (0)P (1)C (2)1B (3)2B (4)3B (5)SS (6)LF (7)CF (8)RF, default 7, (shows range of fielder number)
+fielder_id : int, default 0, max 53
+dive_type : string, "popfly" "linedrive", default "popfly" (linedrive gives the dive range a height component, used by the game when the ball's max height is <5m)
+hangtime : int, default 100, (the time until the ball lands for the purposes of the fielder's range (will be connected to actual simulated hit in the future))
 
 stadium_path : string (path from exe to new stadium, will be remembered if there's no path or illegal path)
 
