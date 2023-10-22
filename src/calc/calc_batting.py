@@ -6,6 +6,7 @@ from data.constants import *
 from src.calc.angle import AdjustBallAngle, mssbConvertToRadians, degreesToRadians
 # from src.calc.rand import WeightedRandomIndex
 
+
 class BattingCalculator:
     StaticRandomInt1 = 7769  # <= 32767
     StaticRandomInt2 = 5359  # <= 32767
