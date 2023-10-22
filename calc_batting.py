@@ -2,7 +2,7 @@ import json
 import math
 from random import random
 
-from data import *
+from constants import *
 
 
 class BattingCalculator:

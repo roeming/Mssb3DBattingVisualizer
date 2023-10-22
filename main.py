@@ -6,7 +6,7 @@ import calc_batting
 import PySimpleGUI as sg
 from random import randint
 
-from data import *
+from constants import *
 
 from os.path import exists
 
