@@ -5,7 +5,7 @@ from src.calc import calc_batting
 import PySimpleGUI as sg
 from random import randint
 from utils.viscolor import contrast_color
-from utils.stadium_variables import *
+from utils.stadium import *
 from data.constants import *
 
 from os.path import exists

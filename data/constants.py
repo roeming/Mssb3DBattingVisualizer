@@ -121,3 +121,6 @@ PUSHPULL_PUSH = 2
 
 
 FIELDER_STARTING_COORDINATES = [[0, 18.4],[0, -3.8],[18.5, 22],[11, 36],[-18.5, 22],[-11, 36],[-34, 60],[0, 76],[34, 60]]
+
+airResistance = 0.996
+gravity = 0.00275

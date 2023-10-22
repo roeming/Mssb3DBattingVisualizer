@@ -48,7 +48,7 @@ def convert_list_to_vector(v):
         return Vector4(*v)
 
 
-# # these two functions were moved from stadium_variables.py since they were generic functions
+# # these two functions were moved from stadium.py since they were generic functions
 def vec3_to_dict(v:Vector3):
     return {
         "X":v.x,

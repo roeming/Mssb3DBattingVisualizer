@@ -1,8 +1,10 @@
 import math
 from random import random
-
+from utils.math_helpers import floor, LinearInterpolateToNewRange, valueToDegrees
+from utils.helpers import isEmptyOrSpaces
 from data.constants import *
-
+from src.calc.angle import AdjustBallAngle, mssbConvertToRadians, degreesToRadians
+# from src.calc.rand import WeightedRandomIndex
 
 class BattingCalculator:
     StaticRandomInt1 = 7769  # <= 32767
@@ -18,23 +20,24 @@ class BattingCalculator:
     AddedContactGravity = 0
     Display_Output = {}
 
-    def floor(f):
-        return math.trunc(f)
+    # moved these math functions to utils/math_helpers.py
+    # def floor(f):
+    #     return math.trunc(f)
 
-    def LinearInterpolateToNewRange(value, prevMin, prevMax, nextMin, nextMax):
-        min = 0.0
-        max = 0.0
-        if (min == (prevMax - prevMin)):
-            max = 1.0
-        else:
-            max = 1.0
-            calcedValue = (value - prevMin) / (prevMax - prevMin)
-
-            if ((calcedValue <= max)):
-                max = calcedValue
-                if (calcedValue < min):
-                    max = min
-        return (nextMax - nextMin) * max + nextMin
+    # def LinearInterpolateToNewRange(value, prevMin, prevMax, nextMin, nextMax):
+    #     min = 0.0
+    #     max = 0.0
+    #     if (min == (prevMax - prevMin)):
+    #         max = 1.0
+    #     else:
+    #         max = 1.0
+    #         calcedValue = (value - prevMin) / (prevMax - prevMin)
+    #
+    #         if ((calcedValue <= max)):
+    #             max = calcedValue
+    #             if (calcedValue < min):
+    #                 max = min
+    #     return (nextMax - nextMin) * max + nextMin
 
     def calculateContact(self):
         chargeUp = self.inMemBatter["BatterAtPlate_BatterCharge_Up"]
@@ -208,14 +211,14 @@ class BattingCalculator:
         }
         return
 
-    def AdjustBallAngle(ballAngle):
-        if (ballAngle < 0):
-            while ballAngle < 0:
-                ballAngle += 0x1000
-        if (0xfff < ballAngle):
-            while 0xfff < ballAngle:
-                ballAngle += -0x1000
-        return ballAngle
+    # def AdjustBallAngle(ballAngle):
+    #     if (ballAngle < 0):
+    #         while ballAngle < 0:
+    #             ballAngle += 0x1000
+    #     if (0xfff < ballAngle):
+    #         while 0xfff < ballAngle:
+    #             ballAngle += -0x1000
+    #     return ballAngle
 
     def WeightedRandomIndex(self, vals, count):
         randomSum = 0
@@ -235,9 +238,9 @@ class BattingCalculator:
 
         else:
             # update RandomInt in case it's called successive times
-            self.StaticRandomInt1 = (self.StaticRandomInt1 - (self.StaticRandomInt2 & 0xff)) + BattingCalculator.floor(
+            self.StaticRandomInt1 = (self.StaticRandomInt1 - (self.StaticRandomInt2 & 0xff)) + floor(
                 self.StaticRandomInt2 / finSum) + self.USHORT_8089269c
-            randomRange = self.StaticRandomInt1 - BattingCalculator.floor(self.StaticRandomInt1 / finSum) * finSum
+            randomRange = self.StaticRandomInt1 - floor(self.StaticRandomInt1 / finSum) * finSum
             randomSum = (randomRange >> 0x1f ^ randomRange) - (randomRange >> 0x1f)
             if (loopSum < 0):
                 randomSum = -randomSum
@@ -266,11 +269,11 @@ class BattingCalculator:
                     BUNT_ANGLE_CALC_ARRAY[contactType][2] - BUNT_ANGLE_CALC_ARRAY[contactType][0])
         iVar1 = self.inMemBatter["Batter_SlapContactSize"] * (
                     BUNT_ANGLE_CALC_ARRAY[contactType][3] - BUNT_ANGLE_CALC_ARRAY[contactType][1])
-        iVar2 = BattingCalculator.floor(iVar2 / 100) + (iVar2 >> 0x1f)
-        iVar1 = BattingCalculator.floor(iVar1 / 100) + (iVar1 >> 0x1f)
+        iVar2 = floor(iVar2 / 100) + (iVar2 >> 0x1f)
+        iVar1 = floor(iVar1 / 100) + (iVar1 >> 0x1f)
         iVar2 = BUNT_ANGLE_CALC_ARRAY[contactType][0] + (iVar2 - (iVar2 >> 0x1f))
         iVar1 = (BUNT_ANGLE_CALC_ARRAY[contactType][1] + (iVar1 - (iVar1 >> 0x1f))) - iVar2
-        iVar2 += self.StaticRandomInt1 - BattingCalculator.floor(self.StaticRandomInt1 / iVar1) * iVar1
+        iVar2 += self.StaticRandomInt1 - floor(self.StaticRandomInt1 / iVar1) * iVar1
         if (contactType != 0):
             if (contactType < 4):
                 if (not input["Left"]):
@@ -291,7 +294,7 @@ class BattingCalculator:
             else:
                 iVar2 = 0x1800 - iVar2
 
-        self.Hit_HorizontalAngle = BattingCalculator.AdjustBallAngle(iVar2)
+        self.Hit_HorizontalAngle = AdjustBallAngle(iVar2)
 
         return
 
@@ -302,8 +305,8 @@ class BattingCalculator:
         iVar7 = BUNTING_CONTACT_ARRAY[uVar4][uVar5][1]
         iVar3 = self.inMemBatter["Batter_SlapContactSize"] * (BUNTING_CONTACT_ARRAY[uVar4][uVar5 + 2][0] - iVar6)
         iVar2 = self.inMemBatter["Batter_SlapContactSize"] * (BUNTING_CONTACT_ARRAY[uVar4][uVar5 + 2][1] - iVar7)
-        iVar3 = BattingCalculator.floor(iVar3 / 100) + (iVar3 >> 0x1f)
-        iVar2 = BattingCalculator.floor(iVar2 / 100) + (iVar2 >> 0x1f)
+        iVar3 = floor(iVar3 / 100) + (iVar3 >> 0x1f)
+        iVar2 = floor(iVar2 / 100) + (iVar2 >> 0x1f)
         iVar6 += iVar3 - (iVar3 >> 0x1f)
         iVar2 = (iVar7 + (iVar2 - (iVar2 >> 0x1f))) - iVar6
         Hit_VerticalAngle = iVar6 + (self.StaticRandomInt1 - (self.StaticRandomInt1 / iVar2) * iVar2)
@@ -311,13 +314,13 @@ class BattingCalculator:
         if (Hit_VerticalAngle < 0x401):
             if (Hit_VerticalAngle < -0x400):
                 Hit_VerticalAngle += 0x1000
-                Hit_HorizontalAngle = BattingCalculator.AdjustBallAngle(Hit_HorizontalAngle + 0x800)
+                Hit_HorizontalAngle = AdjustBallAngle(Hit_HorizontalAngle + 0x800)
 
             elif (Hit_VerticalAngle < 0):
                 Hit_VerticalAngle += 0x1000
         else:
             Hit_VerticalAngle = 0x800 - Hit_VerticalAngle
-            Hit_HorizontalAngle = BattingCalculator.AdjustBallAngle(Hit_HorizontalAngle + 0x800)
+            Hit_HorizontalAngle = AdjustBallAngle(Hit_HorizontalAngle + 0x800)
 
         iVar2 = BUNTING_POWER_ARRAY[self.inMemBatter["Batter_ContactType"]][1] - \
                 BUNTING_POWER_ARRAY[self.inMemBatter["Batter_ContactType"]][0]
@@ -359,10 +362,10 @@ class BattingCalculator:
 
         iVar1 -= iVar2
         if (iVar1 < 0):
-            iVar2 += self.StaticRandomInt1 - BattingCalculator.floor(self.StaticRandomInt1 / -iVar1) * -iVar1
+            iVar2 += self.StaticRandomInt1 - floor(self.StaticRandomInt1 / -iVar1) * -iVar1
 
         elif (0 < iVar1):
-            iVar2 += self.StaticRandomInt1 - BattingCalculator.floor(self.StaticRandomInt1 / iVar1) * iVar1
+            iVar2 += self.StaticRandomInt1 - floor(self.StaticRandomInt1 / iVar1) * iVar1
 
         iVar2 += 0x400
         if (self.inMemBatter["AtBat_BatterHand"] != RIGHTY):
@@ -372,7 +375,7 @@ class BattingCalculator:
             else:
                 iVar2 = 0x1800 - iVar2
 
-        self.Hit_HorizontalAngle = BattingCalculator.AdjustBallAngle(iVar2)
+        self.Hit_HorizontalAngle = AdjustBallAngle(iVar2)
 
         if "override_horizontal_angle" in self.readValues:
             self.Hit_HorizontalAngle = self.readValues["override_horizontal_angle"]
@@ -522,7 +525,7 @@ class BattingCalculator:
 
         self.Display_Output["Vertical Details"]["Selected Range"] = [lowerRange, higherRange]
 
-        sVar3 = lowerRange + (self.StaticRandomInt1 - BattingCalculator.floor(self.StaticRandomInt1 /
+        sVar3 = lowerRange + (self.StaticRandomInt1 - floor(self.StaticRandomInt1 /
                                                                               (higherRange - lowerRange)) * (
                                           higherRange - lowerRange))
 
@@ -534,14 +537,14 @@ class BattingCalculator:
         if (self.Hit_VerticalAngle < 0x401):
             if (self.Hit_VerticalAngle < -0x400):
                 self.Hit_VerticalAngle += 0x1000
-                self.Hit_HorizontalAngle = BattingCalculator.AdjustBallAngle(self.Hit_HorizontalAngle + 0x800)
+                self.Hit_HorizontalAngle = AdjustBallAngle(self.Hit_HorizontalAngle + 0x800)
 
             elif (self.Hit_VerticalAngle < 0):
                 self.Hit_VerticalAngle += 0x1000
 
         else:
             self.Hit_VerticalAngle = 0x800 - self.Hit_VerticalAngle
-            self.Hit_HorizontalAngle = BattingCalculator.AdjustBallAngle(self.Hit_HorizontalAngle + 0x800)
+            self.Hit_HorizontalAngle = AdjustBallAngle(self.Hit_HorizontalAngle + 0x800)
 
     def calculateHitPower(self):
         uVar2 = 0
@@ -603,7 +606,7 @@ class BattingCalculator:
             elif (self.inMemBatter["Batter_ContactType"] == PERFECT):
                 perfectNiceSour = 0
 
-            dVar3 = BattingCalculator.LinearInterpolateToNewRange(self.inMemPitcher["calced_cursedBall"], 0.0, 100.0,
+            dVar3 = LinearInterpolateToNewRange(self.inMemPitcher["calced_cursedBall"], 0.0, 100.0,
                                                                   CURSED_BALL_DEBUFF_ARRAY[perfectNiceSour][0],
                                                                   CURSED_BALL_DEBUFF_ARRAY[perfectNiceSour][1])
             power = (power * dVar3)
@@ -657,7 +660,7 @@ class BattingCalculator:
                 iVar1 = 3
                 niceSour -= 0x300
 
-            fieldAreaBonus = BattingCalculator.LinearInterpolateToNewRange(
+            fieldAreaBonus = LinearInterpolateToNewRange(
                 (niceSour / 256), 0.0, 1.0,
                 FIELD_TRAJECTORY_BONUSES[self.inMemBatter["BatterAtPlate_TrajectoryNearFar"]][iVar1],
                 FIELD_TRAJECTORY_BONUSES[self.inMemBatter["BatterAtPlate_TrajectoryNearFar"]][iVar1 + 1])
@@ -671,11 +674,11 @@ class BattingCalculator:
         if "override_power" in self.readValues:
             fVar1 = self.readValues["override_power"]
 
-        self.Hit_HorizontalPower = BattingCalculator.floor(fVar1)
+        self.Hit_HorizontalPower = floor(fVar1)
         return
 
-    def isEmptyOrSpaces(s: str):
-        return True if len(s) == 0 else s.isspace()
+    # def isEmptyOrSpaces(s: str):
+    #     return True if len(s) == 0 else s.isspace()
 
     def parseValues(self):
         self.Display_Output = {}
@@ -706,17 +709,17 @@ class BattingCalculator:
         if (self.readValues["StaticRandomInt1"] != None):
             self.StaticRandomInt1 = self.readValues["StaticRandomInt1"]
         else:
-            self.StaticRandomInt1 = BattingCalculator.floor(random() * 2 ** 15)
+            self.StaticRandomInt1 = floor(random() * 2 ** 15)
 
         if (self.readValues["StaticRandomInt2"] != None):
             self.StaticRandomInt2 = self.readValues["StaticRandomInt2"]
         else:
-            self.StaticRandomInt2 = BattingCalculator.floor(random() * 2 ** 15)
+            self.StaticRandomInt2 = floor(random() * 2 ** 15)
 
         if (self.readValues["USHORT_8089269c"] != None):
             self.USHORT_8089269c = self.readValues["USHORT_8089269c"]
         else:
-            self.USHORT_8089269c = BattingCalculator.floor(random() * 2 ** 15)
+            self.USHORT_8089269c = floor(random() * 2 ** 15)
 
         self.inMemBatter = {}
         id = self.readValues["batter_id"]
@@ -796,18 +799,18 @@ class BattingCalculator:
 
         return False
 
-    def mssbConvertToRadians(param_1):
-        if (param_1 < 0):
-            param_1 += 0x1000
-
-        if (0xfff < param_1):
-            param_1 += -0x1000
-
-        dVar1 = (math.pi * (param_1 << 1)) / 4096
-        if (math.pi < dVar1):
-            dVar1 = -(2 * math.pi - dVar1)
-
-        return dVar1
+    # def mssbConvertToRadians(param_1):
+    #     if (param_1 < 0):
+    #         param_1 += 0x1000
+    # 
+    #     if (0xfff < param_1):
+    #         param_1 += -0x1000
+    # 
+    #     dVar1 = (math.pi * (param_1 << 1)) / 4096
+    #     if (math.pi < dVar1):
+    #         dVar1 = -(2 * math.pi - dVar1)
+    # 
+    #     return dVar1
 
     def convertPowerToVelocity(self):
         self.inMemBall["ballVelocity"] = {"X": 0, "Y": 0, "Z": 0}
@@ -815,8 +818,8 @@ class BattingCalculator:
 
         half_power = self.Hit_HorizontalPower * 0.5
 
-        horizontalAngle = BattingCalculator.mssbConvertToRadians(self.Hit_HorizontalAngle)
-        verticalAngle = BattingCalculator.mssbConvertToRadians(self.Hit_VerticalAngle)
+        horizontalAngle = mssbConvertToRadians(self.Hit_HorizontalAngle)
+        verticalAngle = mssbConvertToRadians(self.Hit_VerticalAngle)
 
         s_verticalAngle = math.sin(verticalAngle)
         c_verticalAngle = math.cos(verticalAngle)
@@ -930,9 +933,6 @@ class BattingCalculator:
         v = {k: v for k, v in self.inMemBall["ballVelocity"].items()}
         a = {k: v for k, v in self.inMemBall["ballAcceleration"].items()}
 
-        airResistance = 0.996
-        gravity = 0.00275
-
         while (p["Y"] > 0):
             CalculatedPoints.append({k: v for k, v in p.items()})
 
@@ -1030,11 +1030,11 @@ class BattingCalculator:
 
         return self.Display_Output
 
-    def valueToDegrees(v):
-        return (v / 4096) * 360
+    # def valueToDegrees(v):
+    #     return (v / 4096) * 360
 
-    def degreesToRadians(d):
-        return d * math.pi / 180
+    # def degreesToRadians(d):
+    #     return d * math.pi / 180
 
 
 def hit_ball(**kwargs) -> dict:
