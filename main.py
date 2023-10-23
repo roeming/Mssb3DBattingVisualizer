@@ -11,12 +11,64 @@ render_dimensions = (1280, 720)
 
 DEFAULT_STADIUM = "Stadiums/Mario Stadium.json"
 
-CHARACTERNAME_TO_ID = {
-    "Mario": 0,
-    "Luigi": 1
+ID_TO_CHARACTERNAME = {
+    0: "Mario",
+    1: "Luigi",
+    2: "DK",
+    3: "Diddy",
+    4: "Peach",
+    5: "Daisy",
+    6: "Yoshi",
+    7: "Baby Mario",
+    8: "Baby Luigi",
+    9: "Bowser",
+    10: "Wario",
+    11: "Waluigi",
+    12: "Koopa(G)",
+    13: "Toad(R)",
+    14: "Boo",
+    15: "Toadette",
+    16: "Shy Guy(R)",
+    17: "Birdo",
+    18: "Monty",
+    19: "Bowser Jr",
+    20: "Paratroopa(R)",
+    21: "Pianta(B)",
+    22: "Pianta(R)",
+    23: "Pianta(Y)",
+    24: "Noki(B)",
+    25: "Noki(R)",
+    26: "Noki(G)",
+    27: "Bro(H)",
+    28: "Toadsworth",
+    29: "Toad(B)",
+    30: "Toad(Y)",
+    31: "Toad(G)",
+    32: "Toad(P)",
+    33: "Magikoopa(B)",
+    34: "Magikoopa(R)",
+    35: "Magikoopa(G)",
+    36: "Magikoopa(Y)",
+    37: "King Boo",
+    38: "Petey",
+    39: "Dixie",
+    40: "Goomba",
+    41: "Paragoomba",
+    42: "Koopa(R)",
+    43: "Paratroopa(G)",
+    44: "Shy Guy(B)",
+    45: "Shy Guy(Y)",
+    46: "Shy Guy(G)",
+    47: "Shy Guy(Bk)",
+    48: "Dry Bones(Gy)",
+    49: "Dry Bones(G)",
+    50: "Dry Bones(R)",
+    51: "Dry Bones(B)",
+    52: "Bro(F)",
+    53: "Bro(B)",
+    None: "None"
 }
-
-ID_TO_CHARACTERNAME = {v: k for k, v in CHARACTERNAME_TO_ID.items()}
+CHARACTERNAME_TO_ID = {v: k for k, v in ID_TO_CHARACTERNAME.items()}
 
 
 KEYBOARD_CAMERA_CONTROLS = {
@@ -43,10 +95,8 @@ PARSE_GUI_INPUTS = {
     "-HITTYPE-CHARGE-"  : lambda GUI_Value: 1,
     "-PITCHTYPE-CURVE-" : lambda GUI_Value: 0,
     "-PITCHTYPE-CHARGE-": lambda GUI_Value: 1,
-    "-PITCHTYPE-PERFECT-" 
-                        : lambda GUI_Value: 2,
-    "-PITCHTYPE-CHANGEUP-"  
-                        : lambda GUI_Value: 3,
+    "-PITCHTYPE-PERFECT-": lambda GUI_Value: 2,
+    "-PITCHTYPE-CHANGEUP-": lambda GUI_Value: 3,
     "-CHARGE-UP-"       : lambda GUI_Value: min(max(GUI_Value, 0), 1),
     "-CHARGE-DOWN-"     : lambda GUI_Value: min(max(GUI_Value, 0), 1),
     "-CONTACT-FRAME-"   : lambda GUI_Value: int(GUI_Value),
@@ -56,7 +106,17 @@ PARSE_GUI_INPUTS = {
     "-STICK-DOWN-"      : lambda GUI_Value: GUI_Value,
     "-RNG-1-"           : lambda GUI_Value: 0 if not GUI_Value.isnumeric() else min(max(int(GUI_Value),0),32767),
     "-RNG-2-"           : lambda GUI_Value: 0 if not GUI_Value.isnumeric() else min(max(int(GUI_Value),0),32767),
-    "-RNG-3-"           : lambda GUI_Value: 0 if not GUI_Value.isnumeric() else min(max(int(GUI_Value),0),32767)
+    "-RNG-3-"           : lambda GUI_Value: 0 if not GUI_Value.isnumeric() else min(max(int(GUI_Value),0),32767),
+    #Not needed here since the main function has special cases for these
+    #"-OVERRIDE-VERTICAL-RANGE-": lambda GUI_Value: GUI_Value,
+    #"-OVERRIDE-VERTICAL-ANGLE-": lambda GUI_Value: GUI_Value,
+    #"-OVERRIDE-HORIZONTAL-ANGLE-": lambda GUI_Value: GUI_Value,
+    #"-OVERRIDE-POWER-": lambda GUI_Value: GUI_Value,
+    "-SHOW-ONE-HIT-"    : lambda GUI_Value: GUI_Value,
+    "-GEN-RAND-HITS-"   : lambda GUI_Value: GUI_Value,
+    "-SHOW-FPS-"        : lambda GUI_Value: GUI_Value,
+    "-UNITS-FEET-"      : lambda GUI_Value: GUI_Value,
+    "-STADIUM-"         : lambda GUI_Value: GUI_Value
 }
 
 GUIName_TO_JSONName = {
@@ -82,7 +142,16 @@ GUIName_TO_JSONName = {
     "-STICK-DOWN-"          : "stick_down",
     "-RNG-1-"               : "rand_1",
     "-RNG-2-"               : "rand_2",
-    "-RNG-3-"               : "rand_3"
+    "-RNG-3-"               : "rand_3",
+    "-OVERRIDE-VERTICAL-RANGE-": "override_vertical_range",
+    "-OVERRIDE-VERTICAL-ANGLE-": "override_vertical_angle",
+    "-OVERRIDE-HORIZONTAL-ANGLE-": "override_horizontal_angle",
+    "-OVERRIDE-POWER-"      : "override_power",
+    "-SHOW-ONE-HIT-"        : "show_one_hit",
+    "-GEN-RAND-HITS-"       : "generate_random_hits",
+    "-SHOW-FPS-"            : "show_fps",
+    "-UNITS-FEET-"          : "units_feet",
+    "-STADIUM-"             : "stadium_path"
 }
 
 class RenderedBattingScene:
@@ -370,13 +439,9 @@ class RenderedBattingScene:
 
 
 class ParameterWindow:
-    def __init__(self) -> None:
-        #originalGUI_column = [
-        #    [sg.Multiline("{}", key="-BATTING-JSON-", enable_events=True, expand_y=True, auto_size_text=True)],
-        #    [sg.Button("Instructions", key="-INSTRUCTIONS-", enable_events=True), sg.Button("Show Resulting Hit Details", key="-SHOW-HIT-DETAILS-", enable_events=True)]
-        #]
-        
-                #set default inputs
+    def __init__(self) -> None:      
+
+        #set default inputs
         self.input_params = {
             "batter_id": 0,
             "is_batter_captain": False,
@@ -395,23 +460,35 @@ class ParameterWindow:
             "stick_down": False,
             "stick_left": False,
             "stick_right": False,
-            "rand_1":1565,
-            "rand_2":20008,
-            "rand_3":1628
+            #commented out since we want these elements to be missing from the list as a default
+            #"rand_1":1565,
+            #"rand_2":20008,
+            #"rand_3":1628,
+            #"override_vertical_range": -1
+            #"override_vertical_range": -1
+            #"override_horizontal_range": -1
+            #"override_power": -1
+            "show_fps": False,
+            "units_feet": False,
+            "stadium_path": "Stadiums/Mario Stadium.json"
         }
 
         #create GUI and fill default values according to the input_params defaults
         visualizer_param_column = [
             [
+                sg.Button("Instructions", key="-INSTRUCTIONS-", enable_events=True), 
+                sg.Button("Show Resulting Hit Details", key="-SHOW-HIT-DETAILS-", enable_events=True)
+            ],
+            [
                 sg.Text("Batter ID"), 
-                sg.Combo(values=('Mario', 'Luigi'), default_value=ID_TO_CHARACTERNAME[self.input_params["batter_id"]], key="-BATTER-ID-", enable_events=True),  
+                sg.Combo(values=list(CHARACTERNAME_TO_ID.keys()), default_value=ID_TO_CHARACTERNAME[self.input_params["batter_id"]], key="-BATTER-ID-", enable_events=True),  
                 sg.Checkbox('Superstar', default=False), 
                 sg.Checkbox('Lefty', default=self.input_params["handedness"], key="-BATTER-ISLEFTY-",enable_events=True)
             ],
 
             [
                 sg.Text("Pitcher ID"), 
-                sg.Combo(values=('Mario', 'Luigi'), default_value=ID_TO_CHARACTERNAME[self.input_params["pitcher_id"]], key="-PITCHER-ID-", enable_events=True),  
+                sg.Combo(values=list(CHARACTERNAME_TO_ID.keys()), default_value=ID_TO_CHARACTERNAME[self.input_params["pitcher_id"]], key="-PITCHER-ID-", enable_events=True),  
                 sg.Checkbox('Superstar', default=False), 
                 sg.Checkbox('Lefty', default=False)
             ],
@@ -442,28 +519,37 @@ class ParameterWindow:
 
             [
                 sg.Text("Stick Input"), 
-                sg.Checkbox("↑", default=False, key="-STICK-UP-", enable_events=True), 
-                sg.Checkbox("←", default=False, key="-STICK-LEFT-", enable_events=True), 
-                sg.Checkbox("→", default=False, key="-STICK-RIGHT-", enable_events=True), 
-                sg.Checkbox("↓", default=False, key="-STICK-DOWN-", enable_events=True)
+                sg.Checkbox("↑", default=self.input_params["stick_up"], key="-STICK-UP-", enable_events=True), 
+                sg.Checkbox("←", default=self.input_params["stick_left"], key="-STICK-LEFT-", enable_events=True), 
+                sg.Checkbox("→", default=self.input_params["stick_right"], key="-STICK-RIGHT-", enable_events=True), 
+                sg.Checkbox("↓", default=self.input_params["stick_down"], key="-STICK-DOWN-", enable_events=True)
             ],
 
-            [sg.Text("RNG 1"),sg.InputText(self.input_params["rand_1"], key="-RNG-1-", enable_events=True)], 
-            [sg.Text("RNG 2"),sg.InputText(self.input_params["rand_2"], key="-RNG-2-", enable_events=True)], 
-            [sg.Text("RNG 3"),sg.InputText(self.input_params["rand_3"], key="-RNG-3-", enable_events=True)],
+            [sg.Text("RNG 1"),sg.InputText(key="-RNG-1-", enable_events=True)], 
+            [sg.Text("RNG 2"),sg.InputText(key="-RNG-2-", enable_events=True)], 
+            [sg.Text("RNG 3"),sg.InputText(key="-RNG-3-", enable_events=True)],
 
-            [sg.Text("Vertical Range Override"),sg.InputText()], #TODO: connect rest of default values with input-params
-            [sg.Text("Vertical Angle Override"),sg.InputText()], 
-            [sg.Text("Horizontal Angle Override"),sg.InputText()],  
-            [sg.Text("Power Override"),sg.InputText()],  
+            [sg.Text("Vertical Range Override"),sg.InputText(key="-OVERRIDE-VERTICAL-RANGE-", enable_events=True)], #TODO: connect rest of default values with input-params
+            [sg.Text("Vertical Angle Override"),sg.InputText(key="-OVERRIDE-VERTICAL-ANGLE-", enable_events=True)], 
+            [sg.Text("Horizontal Angle Override"),sg.InputText(key="-OVERRIDE-HORIZONTAL-ANGLE-", enable_events=True)],  
+            [sg.Text("Power Override"),sg.InputText(key="-OVERRIDE-POWER-", enable_events=True)],  
 
-            [sg.Checkbox("Show One Hit", default=False)],  
-            [sg.Checkbox("Generate Random Hits", default=False)],   
+            [sg.Checkbox("Show One Hit", default=False, key="-SHOW-ONE-HIT-", enable_events=True)],  
+            [sg.Text("Generate Random Hits"),sg.InputText(key="-GEN-RAND-HITS-", enable_events=True)],    
 
-            [sg.Checkbox("Show FPS", default=False)],  
-            [sg.Checkbox("Convert Units to Feet", default=False)], 
+            [sg.Checkbox("Show FPS", default=self.input_params["show_fps"], key="-SHOW-FPS-", enable_events=True)],  
+            [sg.Checkbox("Convert Units to Feet", default=self.input_params["units_feet"], key="-UNITS-FEET-", enable_events=True)], 
              
-            [sg.Text("Stadium Path"),sg.InputText()] 
+            [sg.Text("Stadium Path"),sg.Combo(values=("Stadiums/Mario Stadium.json", 
+                                                      "Stadiums/Peach's Castle.json", 
+                                                      "Stadiums/Wario Palace.json", 
+                                                      "Stadiums/Yoshi Park.json", 
+                                                      "Stadiums/Donkey Kong Jungle.json", 
+                                                      "Stadiums/Bowser Castle.json", 
+                                                      "Stadiums/Toy Field.json"), 
+                                               default_value=self.input_params["stadium_path"],
+                                               key="-STADIUM-",
+                                               enable_events=True)] 
         ]
         
         layout = [
@@ -481,81 +567,48 @@ class ParameterWindow:
         json_updated = False
         
         event, values = self.window.read(timeout=1/1000)
-        #for event in self.window.read(timeout=1/1000):
         if event == None or event == "__TIMEOUT__":
             pass
-        else:
-            event = event
-            if event == "-WINDOW CLOSE ATTEMPTED-":
-                exit()
-            elif event == "-BATTING-JSON-":
-                json_updated = True
-                try:
-                    new_input = json.loads(self.window["-BATTING-JSON-"].get())
-                except:
-                    new_input = None
-            elif event == "-INSTRUCTIONS-":
-                layout = [[sg.Text(self.instructions_text, key='TEXT')]]
-                sg.Window(f'Instructions', layout, finalize=True)
-            elif event == "-SHOW-HIT-DETAILS-":
-                try:
-                    res_json = calc_batting.hit_ball(**self.parsed_input)
-                    if "FlightDetails" in res_json and "Path" in res_json["FlightDetails"]:
-                        res_json["FlightDetails"].pop("Path")
-                    layout = [[sg.Multiline(json.dumps(res_json, indent=2), key="-BATTING-JSON-", expand_y=True, auto_size_text=True)]]
-                    sg.Window(f'Hit Details', layout, finalize=True, resizable=True)
-                except Exception as e:
-                    pass
+        elif event == "-WINDOW CLOSE ATTEMPTED-":
+            exit()
 
+        #When the buttons are pressed
+        elif event == "-INSTRUCTIONS-":
+            layout = [[sg.Text(self.instructions_text, key='TEXT')]]
+            sg.Window(f'Instructions', layout, finalize=True)
+        elif event == "-SHOW-HIT-DETAILS-":
+            try:
+                res_json = calc_batting.hit_ball(**self.parsed_input)
+                if "FlightDetails" in res_json and "Path" in res_json["FlightDetails"]:
+                    res_json["FlightDetails"].pop("Path")
+                layout = [[sg.Multiline(json.dumps(res_json, indent=2), key="-BATTING-JSON-", expand_y=True, auto_size_text=True)]]
+                sg.Window(f'Hit Details', layout, finalize=True, resizable=True)
+            except Exception as e:
+                pass
 
-            #parse changes to the GUI
-            if event == "-WINDOW CLOSE ATTEMPTED-":
-                exit()
+        #for events that need to be removed from the json when they are blank or invalid
+        elif event in ("-OVERRIDE-VERTICAL-RANGE-", "-OVERRIDE-VERTICAL-ANGLE-", "-OVERRIDE-HORIZONTAL-ANGLE-", "-OVERRIDE-POWER-", 
+                        "-GEN-RAND-HITS-", "-RNG-1-", "-RNG-2-", "-RNG-3-"):
+            if values[event].isdigit():
+                self.input_params[GUIName_TO_JSONName[event]] = int(values[event])
+                #self.saved_final_spots = None if event == "-GEN-RAND-HITS-" else self.saved_final_spots
             else:
-                for key, func in PARSE_GUI_INPUTS.items():
-                    if event == key:
-                        test = GUIName_TO_JSONName[key]
-                        self.input_params[GUIName_TO_JSONName[key]] = func(values[event])
-                        test = self.input_params[GUIName_TO_JSONName[key]]
+                try: 
+                    del self.input_params[GUIName_TO_JSONName[event]]
+                except:
+                    pass
+            json_updated = True
+        #for any other event, there is a lambda function dictionary 
+        else:
+            for key, func in PARSE_GUI_INPUTS.items():
+                if event == key:
+                    test = GUIName_TO_JSONName[key]
+                    self.input_params[GUIName_TO_JSONName[key]] = func(values[event])
+                    test = self.input_params[GUIName_TO_JSONName[key]]
+            json_updated = True
 
-
-            #elif event == "-BATTER-ID-":
-             #   self.input_params["batter_id"] = CHARACTERNAME_TO_ID[self.window["-BATTER-ID-"].get()]
-            #elif event == "-PITCHER-ID-":
-             #   self.input_params["pitcher_id"] = CHARACTERNAME_TO_ID[self.window["-PITCHER-ID-"].get()]
-            #elif event == "-BATTER-ISLEFTY-":
-                #sets handedness to lefty (1) if checkbox is checked.
-             #   self.input_params["handedness"] = 1 if self.window["-BATTER-ISLEFTY-"].get() else 0
-            #elif event == "-BATTER-X-":
-            #    try:
-            #        if abs(float(self.window["-BATTER-X-"].get())) < 2:
-            #            self.input_params["batter_x"] = float(self.window["-BATTER-X-"].get())
-            #        else:
-            #            self.input_params["batter_x"] = 0
-            #    except Exception as e:
-            #        pass
-            # elif event == "-BALL-X-":
-            #     try:
-            #         if abs(float(self.window["-BALL-X-"].get())) < 2:
-            #             self.input_params["ball_x"] = float(self.window["-BALL-X-"].get())
-            #         else:
-            #             self.input_params["ball_x"] = 0
-            #     except Exception as e:
-            #         pass
-            # elif event == "-BALL-Z-":
-            #     try:
-            #         if abs(float(self.window["-BALL-Z-"].get())) < 2:
-            #             self.input_params["ball_z"] = float(self.window["-BALL-Z-"].get())
-            #         else:
-            #             self.input_params["ball_z"] = 0
-            #     except Exception as e:
-            #         pass
-
-        #overriding this to true for while i'm porting over the logic.
-        json_updated = True
         if json_updated:
-            #self.parsed_input = new_input
-            self.parsed_input = self.input_params
+            self.parsed_input = copy.deepcopy(self.input_params)
 
         return json_updated
 
