@@ -1,15 +1,20 @@
 import time, json, copy
 
-from visualizer import *
-from stadium_variables import *
-import calc_batting
+import utils.get_data
+from src.calc import calc_batting
 import PySimpleGUI as sg
 from random import randint
+from utils.viscolor import contrast_color
+from utils.stadium import *
+from data.constants import *
+
 from os.path import exists
+
+from utils.vec_mtx import dict_to_vec3
 
 render_dimensions = (1280, 720)
 
-DEFAULT_STADIUM = "Stadiums/Mario Stadium.json"
+DEFAULT_STADIUM = "data/stadiums/Mario Stadium.json"
 
 ID_TO_CHARACTERNAME = {
     0: "Mario",
@@ -70,6 +75,19 @@ ID_TO_CHARACTERNAME = {
 }
 CHARACTERNAME_TO_ID = {v: k for k, v in ID_TO_CHARACTERNAME.items()}
 
+FIELDEREVENT_TO_POSNUMBER = {
+    "-FIELDER-P-": 0,
+    "-FIELDER-C-": 1,
+    "-FIELDER-1B-": 2,
+    "-FIELDER-2B-": 3,
+    "-FIELDER-3B-": 4,
+    "-FIELDER-SS-": 5,
+    "-FIELDER-LF-": 6,
+    "-FIELDER-CF-": 7,
+    "-FIELDER-RF-": 8
+}
+
+fieldersShown = set()
 
 KEYBOARD_CAMERA_CONTROLS = {
     pygame.K_w      : lambda movement, delta_time, sensitivity : movement + (Vector3(0, 0, 1) * delta_time * sensitivity),
@@ -116,7 +134,11 @@ PARSE_GUI_INPUTS = {
     "-GEN-RAND-HITS-"   : lambda GUI_Value: GUI_Value,
     "-SHOW-FPS-"        : lambda GUI_Value: GUI_Value,
     "-UNITS-FEET-"      : lambda GUI_Value: GUI_Value,
-    "-STADIUM-"         : lambda GUI_Value: GUI_Value
+    "-STADIUM-"         : lambda GUI_Value: GUI_Value,
+    "-SHOWN-FIELDER-"   : lambda GUI_Value: CHARACTERNAME_TO_ID[GUI_Value],
+    "-DIVE-POP-"        : lambda GUI_Value: "popfly",
+    "-DIVE-LINE-"       : lambda GUI_Value: "linedrive",
+    "-BALL-HANGTIME-"   : lambda GUI_Value: 100 if not GUI_Value.isdigit() else int(GUI_Value)
 }
 
 GUIName_TO_JSONName = {
@@ -151,13 +173,17 @@ GUIName_TO_JSONName = {
     "-GEN-RAND-HITS-"       : "generate_random_hits",
     "-SHOW-FPS-"            : "show_fps",
     "-UNITS-FEET-"          : "units_feet",
-    "-STADIUM-"             : "stadium_path"
+    "-STADIUM-"             : "stadium_path",
+    "-SHOWN-FIELDER-"       : "fielder_id",
+    "-DIVE-POP-"            : "dive_type",
+    "-DIVE-LINE-"           : "dive_type",
+    "-BALL-HANGTIME-"       : "hangtime"
 }
 
 class RenderedBattingScene:
     def __init__(self) -> None:
         self.screen = canvas(render_dimensions)
-        self.stadium:MssbStadium = None
+        self.stadium: MssbStadium = None
         self.stadium_graphics_list = None
         self.camera_sensitivity = 10.0
 
@@ -253,8 +279,47 @@ class RenderedBattingScene:
 
         self.draw_fps()
 
+        self.draw_fielders()
+
         self.screen.present()
 
+    def draw_fielders(self):
+        for fielder_pos in fieldersShown:
+            try:
+                #fielder_pos = self.batting_json.get("choose_fielder", 7)
+                fielder_id = self.batting_json.get("fielder_id", 0)     
+                dive_type = self.batting_json.get("dive_type", "popfly")
+                ball_hangtime = self.batting_json.get("hangtime", 100)
+
+                fielder_coordinates = Vector3(FIELDER_STARTING_COORDINATES[fielder_pos][0],0.5,FIELDER_STARTING_COORDINATES[fielder_pos][1])
+
+                self.screen.draw_cube(position=fielder_coordinates,scale=Vector3(1,1,1),filled=True, color=(0, 255, 255))
+
+                sliding_catch_mult =  1 if FIELDER_SLIDINGCATCH_ABILITY[fielder_id] == 0 else 1.2
+                dive_frame_upper = 45 if FIELDER_SLIDINGCATCH_ABILITY[fielder_id] == 0 else 60
+                dive_frame_lower = 6
+
+                jogging_speed = FIELDER_JOGGING_SPEED[fielder_id]
+                sprint_mult = 1.4
+                dive_range = FIELDER_DIVE_RANGE[fielder_id]
+
+                fielder_control_frames = max(ball_hangtime - FIELDER_LOCKOUT_BYPOSITION[fielder_pos], 0)
+
+                running_distance = fielder_control_frames * jogging_speed * sprint_mult
+                #dive_min_distance = jogging_speed * (dive_frame_upper - 1) * sprint_mult
+                #dive_max_distance = dive_min_distance * sliding_catch_mult + dive_range
+                dive_max_distance = max(fielder_control_frames-dive_frame_upper,0) * jogging_speed * sprint_mult + dive_range + min(fielder_control_frames, dive_frame_upper) * jogging_speed * sprint_mult * sliding_catch_mult
+            
+                if dive_type == "popfly":
+                    lineHeight = 0.01
+                elif dive_type == "linedrive":
+                    lineHeight = 2.78 if fielder_id == 2 else 2.5
+
+                self.screen.draw_cylinder(fielder_coordinates, radius=running_distance/2, height=lineHeight, line_width=5, color=(0,0,255))
+                self.screen.draw_cylinder(fielder_coordinates, radius=dive_max_distance/2, height=lineHeight, line_width=5)
+            except:
+                pass
+    
     def draw_fps(self):
         try:
             if self.batting_json.get("show_fps", False) == True:
@@ -268,7 +333,7 @@ class RenderedBattingScene:
             handedness = self.batting_json.get("handedness", 0)
             batter_id = self.batting_json.get("batter_id", 0)
 
-            hbox_batter = calc_batting.get_hitbox(batter_id)
+            hbox_batter = utils.get_data.get_hitbox(batter_id)
                 
             batter_width = hbox_batter[0] / 100
             batter_hitbox_near =  hbox_batter[1] / 100
@@ -289,7 +354,7 @@ class RenderedBattingScene:
             for p in [batter_hitbox_near, batter_hitbox_far]:
                 self.screen.draw_cube(position=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z), scale=Vector3(p, height, batter_width), offset=Vector3(p/2, height/2, batter_width/2), filled=False, color=(0, 255, 255))
             
-            self.screen.draw_text(text=calc_batting.get_name(batter_id), p=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0),text_size=24, rendered_height=0.25)
+            self.screen.draw_text(text=utils.get_data.get_name(batter_id), p=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=0.25)
 
         except:
             pass
@@ -303,13 +368,14 @@ class RenderedBattingScene:
             if handedness == 1:
                 batter_x *= -1
 
-            near_far = calc_batting.get_bat_hitbox(batter_id, 0, handedness)
+            near_far = utils.get_data.get_bat_hitbox(batter_id, 0, handedness)
             
             for p in near_far:
                 self.screen.draw_cube(position=Vector3(batter_x, 1, 0), scale=Vector3(p, 0.1, 0.1), offset=Vector3((p/2), 0, 0))
 
         except:
             pass
+
 
     def draw_ball_path(self):
         try:
@@ -417,11 +483,11 @@ class RenderedBattingScene:
                     in tris.points
                 ]
                 
-                if tris.collection_type == STADIUM_TRIANGLE_COLLECTION_SINGLES:
+                if tris.collection_type == StadiumTriangleCollectionType.SINGLES:
                     r = range(0, len(points), 3)
                     triangle_method = self.screen.draw_triangles
 
-                elif tris.collection_type == STADIUM_TRIANGLE_COLLECTION_STRIP:
+                elif tris.collection_type == StadiumTriangleCollectionType.STRIP:
                     r = range(0, len(points)-2)
                     triangle_method = self.screen.draw_triangle_strip
 
@@ -539,7 +605,25 @@ class ParameterWindow:
 
             [sg.Checkbox("Show FPS", default=self.input_params["show_fps"], key="-SHOW-FPS-", enable_events=True)],  
             [sg.Checkbox("Convert Units to Feet", default=self.input_params["units_feet"], key="-UNITS-FEET-", enable_events=True)], 
-             
+            [
+             sg.Text("Show Fielders"),
+             sg.Checkbox("P", default=False, enable_events=True, key="-FIELDER-P-"),
+             sg.Checkbox("C", default=False, enable_events=True, key="-FIELDER-C-"),
+             sg.Checkbox("1B", default=False, enable_events=True, key="-FIELDER-1B-"),
+             sg.Checkbox("2B", default=False, enable_events=True, key="-FIELDER-2B-"),
+             sg.Checkbox("3B", default=False, enable_events=True, key="-FIELDER-3B-"),
+             sg.Checkbox("SS", default=False, enable_events=True, key="-FIELDER-SS-"),
+             sg.Checkbox("LF", default=False, enable_events=True, key="-FIELDER-LF-"),
+             sg.Checkbox("CF", default=False, enable_events=True, key="-FIELDER-CF-"),
+             sg.Checkbox("RF", default=False, enable_events=True, key="-FIELDER-RF-"),
+            ],
+            [sg.Text("Shown Fielder"), sg.Combo(values=list(CHARACTERNAME_TO_ID.keys()), default_value="Mario", key= "-SHOWN-FIELDER-", enable_events=True)],
+            [
+             sg.Text("Dive Type"),
+             sg.Radio("Pop Fly", group_id="group_dive_type", key="-DIVE-POP-", default=True, enable_events=True),
+             sg.Radio("Line Drive (IF Only)", group_id="group_dive_type", key="-DIVE-LINE-", default=False, enable_events=True),
+            ],
+            [sg.Text("Hit hangtime for dive ranges (default = 100)"), sg.InputText(key="-BALL-HANGTIME-", enable_events=True)],
             [sg.Text("Stadium Path"),sg.Combo(values=("Stadiums/Mario Stadium.json", 
                                                       "Stadiums/Peach's Castle.json", 
                                                       "Stadiums/Wario Palace.json", 
@@ -598,6 +682,12 @@ class ParameterWindow:
                 except:
                     pass
             json_updated = True
+        #show fielder ranges
+        elif event in (FIELDEREVENT_TO_POSNUMBER.keys()):
+            if values[event]:
+                fieldersShown.add(FIELDEREVENT_TO_POSNUMBER[event])
+            else:
+                fieldersShown.discard(FIELDEREVENT_TO_POSNUMBER[event])
         #for any other event, there is a lambda function dictionary 
         else:
             for key, func in PARSE_GUI_INPUTS.items():
