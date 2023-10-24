@@ -8,6 +8,7 @@ from utils.vec_mtx import *
 cached_fonts = {}
 cached_strings = {}
 
+CACHED_STRING_LIMIT = 10000
 
 class canvas:
     def __init__(self, size) -> None:
@@ -229,6 +230,7 @@ class canvas:
     def draw_text(self, text: str, p: Vector3, direction_vector: Vector3, color=(0, 0, 0), text_size=10,
                   rendered_height=2, on_ui=False):
         global cached_fonts, cached_strings
+        
         if text_size not in cached_fonts:
             font = pygame.font.SysFont("Arial", text_size)
             cached_fonts[text_size] = font
@@ -236,9 +238,9 @@ class canvas:
             font = cached_fonts[text_size]
 
         # if we've got too many textures, free them all
-        if len(cached_strings) > 100:
+        if len(cached_strings) > CACHED_STRING_LIMIT:
             glDeleteTextures([generated_texture for (_, __), generated_texture in cached_strings.values()])
-            cached_strings = {}
+            cached_strings.clear()
 
         if on_ui:
             glMatrixMode(GL_MODELVIEW)
@@ -253,8 +255,8 @@ class canvas:
             # glMultMatrixf(self.projection_matrix.transpose().all_values())
 
             glMatrixMode(GL_MODELVIEW)
-
-        if text not in cached_strings:
+        cached_string_tuple = (text, text_size)
+        if cached_string_tuple not in cached_strings:
             rendered_string = font.render(text, False, color)
             rendered_string: pygame.surface.Surface
 
@@ -271,9 +273,9 @@ class canvas:
             glGenerateMipmap(GL_TEXTURE_2D)
             glBindTexture(GL_TEXTURE_2D, 0)
             texture_width, texture_height = (surface_rect.width, surface_rect.height)
-            cached_strings[text] = ((texture_width, texture_height), this_generated_texture)
+            cached_strings[cached_string_tuple] = ((texture_width, texture_height), this_generated_texture)
         else:
-            (texture_width, texture_height), this_generated_texture = cached_strings[text]
+            (texture_width, texture_height), this_generated_texture = cached_strings[cached_string_tuple]
 
         my_height = rendered_height
         my_width = (texture_width / texture_height) * rendered_height
