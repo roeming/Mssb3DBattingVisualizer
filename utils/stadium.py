@@ -26,41 +26,28 @@ class StadiumTriangleType:
     FOUL = 0x80
 
 
+STADIUM_COLOR_MAP = {
+    StadiumTriangleType.GRASS:             VisColors.FOREST_GREEN,
+    StadiumTriangleType.WALL:              VisColors.GRAY,
+    StadiumTriangleType.OOB:               VisColors.YELLOW,
+    StadiumTriangleType.DIRT:              VisColors.BROWN,
+    StadiumTriangleType.BACK:              VisColors.PINK,
+    StadiumTriangleType.PIT_WALL:          VisColors.PURPLE,
+    StadiumTriangleType.PIT:               VisColors.RED,
+    StadiumTriangleType.ROUGH_TERRAIN:     VisColors.DARK_BLUE,
+    StadiumTriangleType.WATER:             VisColors.SKY_BLUE,
+    StadiumTriangleType.CHOMP_HAZARD:      VisColors.GOLD,
+    StadiumTriangleType.FOUL_LINE_MARKERS: VisColors.BLUE,
+}
+
 def tri_type_to_color(t: StadiumTriangleType):
-    b = VisColors.MAGENTA
+    stadium_type    = t & 0x0f
+    foul_indicator  = t & 0xf0
 
-    match t & 0x0f:
-        case StadiumTriangleType.GRASS:
-            return VisColors.FOREST_GREEN
-        case StadiumTriangleType.WALL:
-            return VisColors.GRAY
-        case StadiumTriangleType.OOB:
-            return VisColors.YELLOW
-        case StadiumTriangleType.DIRT:
-            return VisColors.BROWN
-        case StadiumTriangleType.BACK:
-            return VisColors.PINK
-        case StadiumTriangleType.PIT_WALL:
-            return VisColors.PURPLE
-        case StadiumTriangleType.PIT:
-            return VisColors.RED
-        case StadiumTriangleType.ROUGH_TERRAIN:
-            return VisColors.DARK_BLUE
-        case StadiumTriangleType.WATER:
-            return VisColors.SKY_BLUE
-        case StadiumTriangleType.CHOMP_HAZARD:
-            return VisColors.GOLD
-        case StadiumTriangleType.FOUL_LINE_MARKERS:
-            return VisColors.BLUE
-        case _:
-            pass
+    b = STADIUM_COLOR_MAP.get(stadium_type, VisColors.MAGENTA)
 
-    if t & 0xf0 == 0:
-        pass
-    elif t & 0xf0 == StadiumTriangleType.FOUL:
+    if foul_indicator == StadiumTriangleType.FOUL:
         b = (b[0]//2, b[1]//2, b[2]//2)
-    else:
-        pass
 
     return b
 #
