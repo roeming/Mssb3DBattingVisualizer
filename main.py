@@ -14,7 +14,7 @@ from utils.vec_mtx import dict_to_vec3
 
 render_dimensions = (1280, 720)
 
-DEFAULT_STADIUM = "data/stadiums/Mario Stadium.json"
+DEFAULT_STADIUM = "data/Stadiums/Mario Stadium.json"
 
 ID_TO_CHARACTERNAME = {
     0: "Mario",
@@ -624,14 +624,14 @@ class ParameterWindow:
              sg.Radio("Line Drive (IF Only)", group_id="group_dive_type", key="-DIVE-LINE-", default=False, enable_events=True),
             ],
             [sg.Text("Hit hangtime for dive ranges (default = 100)"), sg.InputText(key="-BALL-HANGTIME-", enable_events=True)],
-            [sg.Text("Stadium Path"),sg.Combo(values=("Stadiums/Mario Stadium.json", 
-                                                      "Stadiums/Peach's Castle.json", 
-                                                      "Stadiums/Wario Palace.json", 
-                                                      "Stadiums/Yoshi Park.json", 
-                                                      "Stadiums/Donkey Kong Jungle.json", 
-                                                      "Stadiums/Bowser Castle.json", 
-                                                      "Stadiums/Toy Field.json"), 
-                                               default_value=self.input_params["stadium_path"],
+            [sg.Text("Stadium Path"),sg.Combo(values=("data/Stadiums/Mario Stadium.json", 
+                                                      "data/Stadiums/Peach's Castle.json", 
+                                                      "data/Stadiums/Wario Palace.json", 
+                                                      "data/Stadiums/Yoshi Park.json", 
+                                                      "data/Stadiums/Donkey Kong Jungle.json", 
+                                                      "data/Stadiums/Bowser Castle.json", 
+                                                      "data/Stadiums/Toy Field.json"), 
+                                               default_value=DEFAULT_STADIUM,
                                                key="-STADIUM-",
                                                enable_events=True)] 
         ]
