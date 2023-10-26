@@ -132,7 +132,7 @@ class RenderedBattingScene:
         for fielder_pos in fieldersShown:
             try:
                 #fielder_pos = self.batting_json.get("choose_fielder", 7)
-                fielder_id = self.batting_json.get("fielder_id", 0)     
+                fielder_id = fielder_charID[fielder_pos]    
                 dive_type = self.batting_json.get("dive_type", "popfly")
                 ball_hangtime = self.batting_json.get("hangtime", 100)
 
@@ -151,11 +151,9 @@ class RenderedBattingScene:
                 fielder_control_frames = max(ball_hangtime - FIELDER_LOCKOUT_BYPOSITION[fielder_pos], 0)
 
                 running_distance = fielder_control_frames * jogging_speed * sprint_mult
-                #dive_min_distance = jogging_speed * (dive_frame_upper - 1) * sprint_mult
-                #dive_max_distance = dive_min_distance * sliding_catch_mult + dive_range
                 dive_max_distance = max(fielder_control_frames-dive_frame_upper,0) * jogging_speed * sprint_mult + dive_range + min(fielder_control_frames, dive_frame_upper) * jogging_speed * sprint_mult * sliding_catch_mult
             
-                if dive_type == "popfly":
+                if dive_type == "popfly" or fielder_pos > 5:
                     lineHeight = 0.01
                 elif dive_type == "linedrive":
                     lineHeight = 2.78 if fielder_id == 2 else 2.5
