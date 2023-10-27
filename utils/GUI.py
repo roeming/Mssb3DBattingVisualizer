@@ -5,6 +5,8 @@ import time, json, copy
 
 DEFAULT_STADIUM = "data/Stadiums/Mario Stadium.json"
 
+simulation_type = "manual"
+
 fieldersShown = set()
 fielder_charID = [0] * 9
 
@@ -151,7 +153,6 @@ input_params = {
 class ParameterWindow:
     def __init__(self) -> None:      
 
-
         #create GUI and fill default values according to the input_params defaults
         visualizer_param_column = [
             [
@@ -251,17 +252,73 @@ class ParameterWindow:
             instructions_fielder_column.append([sg.Checkbox(pos, default=False, enable_events=True, key=f'-FIELDER-SHOW-{pos}-'),
                                    sg.Combo(values=list(CHARACTERNAME_TO_ID.keys()), default_value="Mario", key= f"-FIELDER-CHARID-{pos}-", enable_events=True)])
 
+        statFileInputTab = [
+            [sg.Text("Choose Stat File: "), sg.Input(key="-STAT-FILE-PATH-"), sg.FileBrowse()],
+            [sg.Button("Submit", key="-SUBMIT-STAT-FILE-", enable_events=True)],
+            [sg.Text(text='', key="-STAT-FILE-ERROR-MESSAGE-"),],
+            [sg.Text('Event'), 
+             sg.Combo(values=(), disabled=True, key="-STAT-FILE-EVENT-", enable_events=True, size=(40,1))]
+        ]
+
+        group_hitInput = sg.TabGroup([[sg.Tab("Manual Input", visualizer_param_column), sg.Tab("Stat File Input", statFileInputTab)]])
+
         layout = [
             [sg.Column(instructions_fielder_column),
              sg.VSeperator(),
-             sg.Column(visualizer_param_column)]
+             group_hitInput]
         ]
 
         self.window = sg.Window("Render Parameters", layout, resizable=True, enable_close_attempted_event=True)
         self.parsed_input = {}
         self.instructions_text = ""
 
+    def parse_statFile(self, filePath):
+        self.statFileParseSuccessful = False
 
+        try:
+            statFile_data = json.loads(open(filePath, 'r').read())
+            
+            #todo: check if encoded file was selected, then don't use it
+                    
+            self.contactEvents = []
+            for event in statFile_data["Events"]:
+                if "Pitch" in event:
+                    if "Contact" in event["Pitch"]:
+                        self.contactEvents.append(event)
+        
+            if len(self.contactEvents) > 0:
+                self.statFileParseSuccessful = True
+
+
+        except:
+            return 
+        
+
+
+        return
+    
+    def createEventList(self):
+        self.eventDescriptions = {}
+
+        inningSuffix = {1: "st", 2: "nd", 3: "rd"}
+
+        for contact in self.contactEvents:
+            evNum = contact["Event Num"]
+            halfInning = "Top" if contact["Half Inning"] == 0 else "Bottom"
+            if contact["Inning"] > 3:
+                inning = str(contact["Inning"]) + "th"
+            else:
+                inning = str(contact["Inning"]) + inningSuffix[contact["Inning"]]
+            balls = contact["Balls"]
+            strikes = contact["Strikes"]
+            outs = contact["Outs"]
+            batter = contact["Runner Batter"]["Runner Char Id"]
+            
+            description = f'{evNum}: {halfInning} {inning} {balls}-{strikes} {outs} Outs {batter}'
+
+            self.eventDescriptions[description] = evNum
+
+        return
 
     def update_values(self):
         new_input = None
@@ -307,6 +364,23 @@ class ParameterWindow:
                 fieldersShown.discard(FIELDER_SHOWN_EVENT_TO_POSNUMBER[event])
         elif event.startswith("-FIELDER-CHARID-"):
             fielder_charID[FIELDER_ID_EVENT_TO_POSNUMBER[event]] = CHARACTERNAME_TO_ID[values[event]]
+        elif event == "-SUBMIT-STAT-FILE-":
+            self.statFilePath = values["-STAT-FILE-PATH-"]
+            self.parse_statFile(self.statFilePath)
+            if self.statFileParseSuccessful:
+                #if parse successful, call function to update dropdowns
+                self.createEventList()
+                self.window["-STAT-FILE-EVENT-"].update(value=list(self.eventDescriptions.keys())[0],
+                                                        values=list(self.eventDescriptions.keys()),
+                                                        disabled=False)
+                self.window["-STAT-FILE-ERROR-MESSAGE-"].update(value="Stat file loaded successfully")
+
+                #update inputs based on first event
+                json_updated = True
+            else:
+                self.window["-STAT-FILE-EVENT-"].update(values=(), disabled=True)
+                self.window["-STAT-FILE-ERROR-MESSAGE-"].update(value="Failed to load stat file")
+                json_updated = False
         #for any other event, there is a lambda function dictionary 
         else:
             for key, func in PARSE_GUI_INPUTS.items():
