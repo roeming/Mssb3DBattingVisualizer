@@ -34,46 +34,40 @@ FIELDER_ID_EVENT_TO_POSNUMBER = {
     "-FIELDER-CHARID-RF-": 8
 }
 
+def can_convert(val, type):
+    try:
+        type(val)
+    except:
+        return False
+    return True
+
+def clamp(_min, val, _max):
+    return max(_min, min(val, _max))
+
 PARSE_GUI_INPUTS = {
     "-BATTER-ID-"       : lambda GUI_Value : CHARACTERNAME_TO_ID[GUI_Value],
     "-PITCHER-ID-"      : lambda GUI_Value : CHARACTERNAME_TO_ID[GUI_Value],
     "-BATTER-ISLEFTY-"  : lambda GUI_Value : 1 if GUI_Value else 0,
     #The next 3 check if value is a float before using the float function, then truncates to -2 to 2.
     #The truncating should be made smarter in the future to use real values from the game.
-    "-BATTER-X-"        : lambda GUI_Value : 0 if not GUI_Value.replace(".","").replace("-","").isnumeric() else min(max(float(GUI_Value),-2),2),
-    "-BALL-X-"          : lambda GUI_Value : 0 if not GUI_Value.replace(".","").replace("-","").isnumeric() else min(max(float(GUI_Value),-2),2),
-    "-BALL-Z-"          : lambda GUI_Value : 0 if not GUI_Value.replace(".","").replace("-","").isnumeric() else min(max(float(GUI_Value),-2),2),
-    "-CHEM-LINKS-"      : lambda GUI_Value: GUI_Value,
+    "-BATTER-X-"        : lambda GUI_Value : 0 if not can_convert(GUI_Value, float) else clamp(-2, float(GUI_Value), 2),
+    "-BALL-X-"          : lambda GUI_Value : 0 if not can_convert(GUI_Value, float) else clamp(-2, float(GUI_Value), 2),
+    "-BALL-Z-"          : lambda GUI_Value : 0 if not can_convert(GUI_Value, float) else clamp(-2, float(GUI_Value), 2),
     "-HITTYPE-SLAP-"    : lambda GUI_Value: 0,
     "-HITTYPE-CHARGE-"  : lambda GUI_Value: 1,
     "-PITCHTYPE-CURVE-" : lambda GUI_Value: 0,
     "-PITCHTYPE-CHARGE-": lambda GUI_Value: 1,
     "-PITCHTYPE-PERFECT-": lambda GUI_Value: 2,
     "-PITCHTYPE-CHANGEUP-": lambda GUI_Value: 3,
-    "-CHARGE-UP-"       : lambda GUI_Value: min(max(GUI_Value, 0), 1),
-    "-CHARGE-DOWN-"     : lambda GUI_Value: min(max(GUI_Value, 0), 1),
+    "-CHARGE-UP-"       : lambda GUI_Value: clamp(0, GUI_Value, 1),
+    "-CHARGE-DOWN-"     : lambda GUI_Value: clamp(0, GUI_Value, 1),
     "-CONTACT-FRAME-"   : lambda GUI_Value: int(GUI_Value),
-    "-STICK-UP-"        : lambda GUI_Value: GUI_Value,
-    "-STICK-LEFT-"      : lambda GUI_Value: GUI_Value,
-    "-STICK-RIGHT-"     : lambda GUI_Value: GUI_Value,
-    "-STICK-DOWN-"      : lambda GUI_Value: GUI_Value,
-    "-RNG-1-"           : lambda GUI_Value: 0 if not GUI_Value.isnumeric() else min(max(int(GUI_Value),0),32767),
-    "-RNG-2-"           : lambda GUI_Value: 0 if not GUI_Value.isnumeric() else min(max(int(GUI_Value),0),32767),
-    "-RNG-3-"           : lambda GUI_Value: 0 if not GUI_Value.isnumeric() else min(max(int(GUI_Value),0),32767),
-    #Not needed here since the main function has special cases for these
-    #"-OVERRIDE-VERTICAL-RANGE-": lambda GUI_Value: GUI_Value,
-    #"-OVERRIDE-VERTICAL-ANGLE-": lambda GUI_Value: GUI_Value,
-    #"-OVERRIDE-HORIZONTAL-ANGLE-": lambda GUI_Value: GUI_Value,
-    #"-OVERRIDE-POWER-": lambda GUI_Value: GUI_Value,
-    "-SHOW-ONE-HIT-"    : lambda GUI_Value: GUI_Value,
-    "-GEN-RAND-HITS-"   : lambda GUI_Value: GUI_Value,
-    "-SHOW-FPS-"        : lambda GUI_Value: GUI_Value,
-    "-UNITS-FEET-"      : lambda GUI_Value: GUI_Value,
-    "-STADIUM-"         : lambda GUI_Value: GUI_Value,
+    "-RNG-1-"           : lambda GUI_Value: 0 if not can_convert(GUI_Value, int) else clamp(0, int(GUI_Value), 32767),
+    "-RNG-2-"           : lambda GUI_Value: 0 if not can_convert(GUI_Value, int) else clamp(0, int(GUI_Value), 32767),
+    "-RNG-3-"           : lambda GUI_Value: 0 if not can_convert(GUI_Value, int) else clamp(0, int(GUI_Value), 32767),
     "-SHOWN-FIELDER-"   : lambda GUI_Value: CHARACTERNAME_TO_ID[GUI_Value],
     "-DIVE-POP-"        : lambda GUI_Value: "popfly",
     "-DIVE-LINE-"       : lambda GUI_Value: "linedrive",
-    "-BALL-HANGTIME-"   : lambda GUI_Value: GUI_Value
 }
 
 GUIName_TO_JSONName = {
@@ -309,11 +303,14 @@ class ParameterWindow:
             fielder_charID[FIELDER_ID_EVENT_TO_POSNUMBER[event]] = CHARACTERNAME_TO_ID[values[event]]
         #for any other event, there is a lambda function dictionary 
         else:
-            for key, func in PARSE_GUI_INPUTS.items():
-                if event == key:
-                    test = GUIName_TO_JSONName[key]
-                    input_params[GUIName_TO_JSONName[key]] = func(values[event])
-                    test = input_params[GUIName_TO_JSONName[key]]
+            json_param_value = values[event]
+
+            param_conversion_method = PARSE_GUI_INPUTS.get(event, None)
+            if param_conversion_method != None:
+                json_param_value = param_conversion_method(json_param_value)
+
+            input_params[GUIName_TO_JSONName[event]] = json_param_value
+
             json_updated = True
 
         if json_updated:
