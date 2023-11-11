@@ -166,7 +166,7 @@ class RenderedBattingScene:
     def draw_fps(self):
         try:
             if self.batting_json.get("show_fps", False) == True:
-                self.screen.draw_text(text=f"Fps: {int(1/(self.dt))}", p=Vector3(-1,-1,0), direction_vector=Vector3(1,0,0), rendered_height=0.05, text_size=24, on_ui=True)
+                self.screen.draw_text(text=f"Fps: {int(1/(self.dt))}", start_point=Vector3(-1,-1,0), direction_vector=Vector3(1,0,0), rendered_height=0.05, text_size=24, on_ui=True)
         except:
             pass
 
@@ -197,7 +197,7 @@ class RenderedBattingScene:
             for p in [batter_hitbox_near, batter_hitbox_far]:
                 self.screen.draw_cube(position=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z), scale=Vector3(p, height, batter_width), offset=Vector3(p/2, height/2, batter_width/2), filled=False, color=(0, 255, 255))
             
-            self.screen.draw_text(text=utils.get_data.get_name(batter_id), p=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=0.25)
+            self.screen.draw_text(text=utils.get_data.get_name(batter_id), start_point=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=0.25)
 
         except:
             pass
@@ -247,14 +247,14 @@ class RenderedBattingScene:
                     if kwargs.get("units_feet", False) == True:
                         final_point_display *= 3.28084
                     
-                    self.screen.draw_text(text=f"({final_point_display.x:.2f}, {final_point_display.z:.2f})", p=final_point, direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=render_height)
+                    self.screen.draw_text(text=f"({final_point_display.x:.2f}, {final_point_display.z:.2f})", start_point=final_point, direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=render_height)
 
                     hit_distance = final_point_display.length()
                     text = f"{hit_distance:.2f} m"
                     if kwargs.get("units_feet", False) == True:
                         text = f"{hit_distance:.2f} ft"
                         
-                    self.screen.draw_text(text=text, p=final_point + Vector3(0, render_height, 0), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=render_height)
+                    self.screen.draw_text(text=text, start_point=final_point + Vector3(0, render_height, 0), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=render_height)
 
                     self.screen.draw_sphere(new_points[self.frame_counter % len(new_points)], radius=0.1, resolution=5)
 

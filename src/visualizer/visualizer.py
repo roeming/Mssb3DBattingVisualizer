@@ -147,7 +147,7 @@ class canvas:
         p = Vector3((p.x * 0.5 + 0.5) * self.width, (1.0 - (p.y * 0.5 + 0.5)) * self.height, p.z)
         return p
 
-    def draw_sphere(self, p: Vector3, resolution=20, radius=1.0, line_width=2, color=(255, 0, 0), fill=True):
+    def draw_sphere(self, center_point: Vector3, resolution=20, radius=1.0, line_width=2, color=(255, 0, 0), fill=True):
         quad = gluNewQuadric()
 
         glPushMatrix()
@@ -155,7 +155,7 @@ class canvas:
 
         glLineWidth(line_width)
 
-        glTranslatef(p.x, p.y, p.z)
+        glTranslatef(center_point.x, center_point.y, center_point.z)
 
         glColor3ub(*color)
         if not fill:
@@ -200,14 +200,14 @@ class canvas:
         # self.draw_lines(points, color, line_width, closed=False)
         # # pygame.draw.lines(self.screen, color, points=points, width=line_width, closed=False)
 
-    def draw_hemisphere(self, p: Vector3, resolution=20, radius=1.0, line_width=2, color=(255, 0, 0)):
+    def draw_hemisphere(self, center_point: Vector3, resolution=20, radius=1.0, line_width=2, color=(255, 0, 0)):
 
         # draw ring
         diameter = radius * 2
         points = []
         for ii in range(resolution):
             a = (ii / resolution) * 2 * math.pi
-            points.append(self.project_point(p + diameter * Vector3(math.cos(a), 0.0, math.sin(a))).xy)
+            points.append(self.project_point(center_point + diameter * Vector3(math.cos(a), 0.0, math.sin(a))).xy)
         self.draw_lines(points, color, line_width)
         # pygame.draw.lines(self.screen, color, points, width=line_width, closed=False)
 
@@ -215,7 +215,7 @@ class canvas:
         points = []
         for ii in range(resolution):
             a = (ii / (resolution - 1)) * math.pi - math.pi * 1 / 2
-            points.append(self.project_point(p + diameter * Vector3(0.0, math.cos(a), math.sin(a))).xy)
+            points.append(self.project_point(center_point + diameter * Vector3(0.0, math.cos(a), math.sin(a))).xy)
         self.draw_lines(points, color, line_width)
         # pygame.draw.lines(self.screen, color, points=points, width=line_width, closed=False)
 
@@ -223,11 +223,11 @@ class canvas:
         points = []
         for ii in range(resolution):
             a = (ii / (resolution - 1)) * math.pi + math.pi
-            points.append(self.project_point(p + diameter * Vector3(math.cos(a), -math.sin(a), 0.0)).xy)
+            points.append(self.project_point(center_point + diameter * Vector3(math.cos(a), -math.sin(a), 0.0)).xy)
         self.draw_lines(points, color, line_width)
         # pygame.draw.lines(self.screen, color, points=points, width=line_width, closed=False)
 
-    def draw_text(self, text: str, p: Vector3, direction_vector: Vector3, color=(0, 0, 0), text_size=10,
+    def draw_text(self, text: str, start_point: Vector3, direction_vector: Vector3, color=(0, 0, 0), text_size=10,
                   rendered_height=2, on_ui=False):
         global cached_fonts, cached_strings
         
@@ -287,7 +287,7 @@ class canvas:
 
         tilted_offset = tilted_top * my_height
 
-        bl_corner = p
+        bl_corner = start_point
         tl_corner = bl_corner + tilted_offset
 
         br_corner = bl_corner + (my_direction * my_width)
@@ -321,7 +321,7 @@ class canvas:
             glMatrixMode(GL_MODELVIEW)
             glPopMatrix()
 
-    def draw_cylinder(self, p: Vector3, color=(255, 0, 0), resolution=20, radius=0.5, height=1.0, line_width=2,
+    def draw_cylinder(self, bottom_center_point: Vector3, color=(255, 0, 0), resolution=20, radius=0.5, height=1.0, line_width=2,
                       fill=False):
 
         diameter = radius * 2
@@ -332,7 +332,7 @@ class canvas:
         bottom_ring = []
         for ii in range(resolution):
             a = (ii / resolution) * 2 * math.pi
-            new_p = p + diameter * Vector3(math.cos(a), 0.0, math.sin(a))
+            new_p = bottom_center_point + diameter * Vector3(math.cos(a), 0.0, math.sin(a))
             bottom_ring.append(new_p)
 
         top_ring = [Vector3(a.x, a.y + height, a.z) for a in bottom_ring]
@@ -370,19 +370,19 @@ class canvas:
 
             self.draw_triangle_strip(outside_skin, color, line_width, filled=True)
 
-    def draw_wedge(self, p: Vector3, inner_radius, outer_radius, upper_angle, lower_angle, mAboveGround=0, line_width=0,
+    def draw_wedge(self, center_point: Vector3, inner_radius, outer_radius, upper_angle, lower_angle, mAboveGround=0, line_width=0,
                    resolution=20, color=(255, 0, 0), filled=False):
         points = []
         # inner arc
         for ii in range(resolution):
             a = (ii / resolution) * (upper_angle - lower_angle) + lower_angle
-            points.append(p + inner_radius * Vector3(math.cos(a), mAboveGround, math.sin(a)))
+            points.append(center_point + inner_radius * Vector3(math.cos(a), mAboveGround, math.sin(a)))
         # outer arc
         for ii in range(resolution):
             a = ((resolution - ii - 1) / resolution) * (upper_angle - lower_angle) + lower_angle
-            points.append(p + outer_radius * Vector3(math.cos(a), mAboveGround, math.sin(a)))
+            points.append(center_point + outer_radius * Vector3(math.cos(a), mAboveGround, math.sin(a)))
         # connect back to start
-        points.append(p + inner_radius * Vector3(math.cos(lower_angle), mAboveGround, math.sin(lower_angle)))
+        points.append(center_point + inner_radius * Vector3(math.cos(lower_angle), mAboveGround, math.sin(lower_angle)))
 
         self.draw_lines(points=points, color=color, line_width=line_width, closed=True, filled=filled)
 
