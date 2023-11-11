@@ -15,6 +15,8 @@ from utils.vec_mtx import dict_to_vec3
 
 render_dimensions = (1280, 720)
 
+METERS_TO_FEET = 3.28084
+
 KEYBOARD_CAMERA_CONTROLS = {
     pygame.K_w      : lambda movement, delta_time, sensitivity : movement + (Vector3(0, 0, 1) * delta_time * sensitivity),
     pygame.K_s      : lambda movement, delta_time, sensitivity : movement - (Vector3(0, 0, 1) * delta_time * sensitivity),
@@ -289,7 +291,7 @@ class RenderedBattingScene:
                     render_height = 0.5
 
                     if kwargs.get("units_feet", False) == True:
-                        final_point_display *= 3.28084
+                        final_point_display *= METERS_TO_FEET
                     
                     self.screen.draw_text(
                         text             = f"({ final_point_display.x :.2f}, { final_point_display.z :.2f})",
@@ -317,6 +319,35 @@ class RenderedBattingScene:
                         radius       = 0.1, 
                         resolution   = 5
                     )
+
+                    if kwargs.get("show_max_height", False) == True:
+                        highest_point = max(new_points, key=lambda x: x.y)
+                        display_height = highest_point.y
+                        
+                        height_text = f"{ display_height :.2f} m"
+
+                        if kwargs.get("units_feet", False) == True:
+                            height_text = f"{ display_height * METERS_TO_FEET :.2f} ft"
+
+                        self.screen.draw_text(
+                            text                = height_text,
+                            start_point         = highest_point,
+                            direction_vector    = Vector3(1, 0, 0),
+                            text_size           = 24,
+                            rendered_height     = render_height
+                        )
+                    
+                    if kwargs.get("show_curve_on_ground", False) == True:
+                        epsilon = 0.01
+                        flat_points = [Vector3(x.x,  epsilon, x.z) for x in new_points]
+
+                        self.screen.draw_lines(
+                            points      = flat_points,
+                            color       = (255, 100, 100),
+                            line_width  = 1
+                        )
+                # end if len(points) > 0
+            # end loop
 
             if isinstance(self.batting_json["generate_random_hits"], int) and self.batting_json["generate_random_hits"] > 0 and self.saved_final_spots == None:
                 self.saved_final_spots = self.screen.start_new_list()

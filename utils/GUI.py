@@ -101,6 +101,8 @@ GUIName_TO_JSONName = {
     "-SHOW-ONE-HIT-"        : "show_one_hit",
     "-GEN-RAND-HITS-"       : "generate_random_hits",
     "-SHOW-FPS-"            : "show_fps",
+    "-SHOW-MAX-HEIGHT-"     : "show_max_height",
+    "-SHOW-CURVE-ON-GROUND-": "show_curve_on_ground",
     "-UNITS-FEET-"          : "units_feet",
     "-STADIUM-"             : "stadium_path",
     "-SHOWN-FIELDER-"       : "fielder_id",
@@ -138,6 +140,8 @@ input_params = {
     #"override_power": -1
     "show_fps": False,
     "units_feet": False,
+    "show_curve_on_ground" : False,
+    "show_max_height" : False,
     "stadium_path": "Stadiums/Mario Stadium.json"
 }
 
@@ -214,7 +218,11 @@ class ParameterWindow:
 
             [sg.Checkbox("Show One Hit", default=False, key="-SHOW-ONE-HIT-", enable_events=True),
              sg.Checkbox("Show FPS", default=input_params["show_fps"], key="-SHOW-FPS-", enable_events=True),
-             sg.Checkbox("Convert Units to Feet", default=input_params["units_feet"], key="-UNITS-FEET-", enable_events=True)],  
+             sg.Checkbox("Convert Units to Feet", default=input_params["units_feet"], key="-UNITS-FEET-", enable_events=True)],
+
+            [sg.Checkbox("Show Max Height", default=input_params["show_max_height"], key="-SHOW-MAX-HEIGHT-", enable_events=True),
+             sg.Checkbox("Show Curve Along Ground", default=input_params["show_curve_on_ground"], key="-SHOW-CURVE-ON-GROUND-", enable_events=True)],
+
             [sg.Text("Generate n Random Hits"),sg.InputText(key="-GEN-RAND-HITS-", enable_events=True)], 
             [sg.Text("Stadium Path"),sg.Combo(values=("data/Stadiums/Mario Stadium.json", 
                                                       "data/Stadiums/Peach's Castle.json", 
