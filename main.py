@@ -138,7 +138,11 @@ class RenderedBattingScene:
 
                 fielder_coordinates = Vector3(FIELDER_STARTING_COORDINATES[fielder_pos][0],0.5,FIELDER_STARTING_COORDINATES[fielder_pos][1])
 
-                self.screen.draw_cube(position=fielder_coordinates,scale=Vector3(1,1,1),filled=True, color=(0, 255, 255))
+                self.screen.draw_cube(
+                    position    = fielder_coordinates,
+                    scale       = Vector3(1,1,1),
+                    filled      = True, 
+                    color       = (0, 255, 255))
 
                 sliding_catch_mult =  1 if FIELDER_SLIDINGCATCH_ABILITY[fielder_id] == 0 else 1.2
                 dive_frame_upper = 45 if FIELDER_SLIDINGCATCH_ABILITY[fielder_id] == 0 else 60
@@ -158,15 +162,34 @@ class RenderedBattingScene:
                 elif dive_type == "linedrive":
                     lineHeight = 2.78 if fielder_id == 2 else 2.5
 
-                self.screen.draw_cylinder(fielder_coordinates, radius=running_distance/2, height=lineHeight, line_width=5, color=(0,0,255))
-                self.screen.draw_cylinder(fielder_coordinates, radius=dive_max_distance/2, height=lineHeight, line_width=5)
+                self.screen.draw_cylinder(
+                    bottom_center_point = fielder_coordinates, 
+                    radius              = running_distance / 2,
+                    height              = lineHeight, 
+                    line_width          = 5, 
+                    color               = (0,0,255)
+                )
+                self.screen.draw_cylinder(
+                    bottom_center_point = fielder_coordinates, 
+                    radius              = dive_max_distance / 2, 
+                    height              = lineHeight, 
+                    line_width          = 5,
+                    color               = (255, 0, 0)
+                )
             except:
                 pass
     
     def draw_fps(self):
         try:
             if self.batting_json.get("show_fps", False) == True:
-                self.screen.draw_text(text=f"Fps: {int(1/(self.dt))}", start_point=Vector3(-1,-1,0), direction_vector=Vector3(1,0,0), rendered_height=0.05, text_size=24, on_ui=True)
+                self.screen.draw_text(
+                    text                = f"Fps: { int(1 / self.dt) }", 
+                    start_point         = Vector3(-1, -1, 0), 
+                    direction_vector    = Vector3(1, 0, 0), 
+                    rendered_height     = 0.05, 
+                    text_size           = 24, 
+                    on_ui               = True
+                )
         except:
             pass
 
@@ -195,9 +218,21 @@ class RenderedBattingScene:
             slight_offset = 0.001
 
             for p in [batter_hitbox_near, batter_hitbox_far]:
-                self.screen.draw_cube(position=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z), scale=Vector3(p, height, batter_width), offset=Vector3(p/2, height/2, batter_width/2), filled=False, color=(0, 255, 255))
+                self.screen.draw_cube(
+                    position    = Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z), 
+                    scale       = Vector3(p, height, batter_width), 
+                    offset      = Vector3(p/2, height/2, batter_width/2), 
+                    filled      = False, 
+                    color       = (0, 255, 255)
+                )
             
-            self.screen.draw_text(text=utils.get_data.get_name(batter_id), start_point=Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=0.25)
+            self.screen.draw_text(
+                text                = utils.get_data.get_name(batter_id), 
+                start_point         = Vector3(batter_x + batter_offset_x, slight_offset, batter_offset_z - slight_offset), 
+                direction_vector    = Vector3(1, 0, 0), 
+                text_size           = 24, 
+                rendered_height     = 0.25
+            )
 
         except:
             pass
@@ -214,7 +249,11 @@ class RenderedBattingScene:
             near_far = utils.get_data.get_bat_hitbox(batter_id, 0, handedness)
             
             for p in near_far:
-                self.screen.draw_cube(position=Vector3(batter_x, 1, 0), scale=Vector3(p, 0.1, 0.1), offset=Vector3((p/2), 0, 0))
+                self.screen.draw_cube(
+                    position    = Vector3(batter_x, 1, 0), 
+                    scale       = Vector3(p, 0.1, 0.1), 
+                    offset      = Vector3(p / 2, 0, 0)
+                )
 
         except:
             pass
@@ -239,7 +278,12 @@ class RenderedBattingScene:
                         for x 
                         in res
                     ]
-                    self.screen.draw_lines(new_points, line_width=5)
+                    
+                    self.screen.draw_lines(
+                        points      = new_points, 
+                        line_width  = 5
+                    )
+
                     final_point = new_points[-1]
                     final_point_display = final_point.copy()
                     render_height = 0.5
@@ -247,16 +291,32 @@ class RenderedBattingScene:
                     if kwargs.get("units_feet", False) == True:
                         final_point_display *= 3.28084
                     
-                    self.screen.draw_text(text=f"({final_point_display.x:.2f}, {final_point_display.z:.2f})", start_point=final_point, direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=render_height)
+                    self.screen.draw_text(
+                        text             = f"({ final_point_display.x :.2f}, { final_point_display.z :.2f})",
+                        start_point      = final_point, 
+                        direction_vector = Vector3(1, 0, 0), 
+                        text_size        = 24, 
+                        rendered_height  = render_height
+                    )
 
                     hit_distance = final_point_display.length()
                     text = f"{hit_distance:.2f} m"
                     if kwargs.get("units_feet", False) == True:
                         text = f"{hit_distance:.2f} ft"
                         
-                    self.screen.draw_text(text=text, start_point=final_point + Vector3(0, render_height, 0), direction_vector=Vector3(1, 0, 0), text_size=24, rendered_height=render_height)
+                    self.screen.draw_text(
+                        text             = text, 
+                        start_point      = final_point + Vector3(0, render_height, 0), 
+                        direction_vector = Vector3(1, 0, 0), 
+                        text_size        = 24, 
+                        rendered_height  = render_height
+                    )
 
-                    self.screen.draw_sphere(new_points[self.frame_counter % len(new_points)], radius=0.1, resolution=5)
+                    self.screen.draw_sphere(
+                        center_point = new_points[self.frame_counter % len(new_points)], 
+                        radius       = 0.1, 
+                        resolution   = 5
+                    )
 
             if isinstance(self.batting_json["generate_random_hits"], int) and self.batting_json["generate_random_hits"] > 0 and self.saved_final_spots == None:
                 self.saved_final_spots = self.screen.start_new_list()
@@ -274,7 +334,11 @@ class RenderedBattingScene:
                         s.add((*final_point,))
                         # self.screen.draw_lines(all_hit_points, line_width=1, color=(255, 255, 255))
 
-                        self.screen.draw_sphere(final_point, radius=0.1, resolution=2)
+                        self.screen.draw_sphere(
+                            center_point    = final_point, 
+                            radius          = 0.1, 
+                            resolution      = 2
+                        )
 
                 self.screen.end_list(self.saved_final_spots)
 
@@ -341,8 +405,19 @@ class RenderedBattingScene:
                     # third point in the triangle defines the collision type
                     color = tri_type_to_color(tris.points[i+2].stadium_type)
 
-                    triangle_method(new_points, filled=True, color=color, draw_normals=False)
-                    triangle_method(new_points, filled=False, color=contrast_color(color), draw_normals=False)
+                    triangle_method(
+                        points       = new_points,
+                        filled       = True,
+                        color        = color,
+                        draw_normals = False
+                    )
+
+                    triangle_method(
+                        points       = new_points, 
+                        filled       = False, 
+                        color        = contrast_color(color), 
+                        draw_normals = False
+                    )
 
         self.screen.end_list(self.stadium_graphics_list)
 
